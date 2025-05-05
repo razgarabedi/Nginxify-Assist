@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { notFound } from 'next/navigation';
+import React, { useEffect, useState } from 'react'; // Ensure React is imported
+import { useParams, notFound } from 'next/navigation'; // Import useParams
 import { useLanguage } from '@/context/language-context';
 import { allServices, type Service } from '@/lib/services-data';
 import Image from "next/image";
@@ -10,24 +10,27 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-interface ServiceDetailPageProps {
-  params: { slug: string };
-}
+// Remove params from props type, as we'll use the hook
+// interface ServiceDetailPageProps {
+//   params: { slug: string };
+// }
 
-export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
-  const { slug } = params;
+export default function ServiceDetailPage(/* Remove params from props */) {
+  const params = useParams<{ slug: string }>(); // Use the hook to get params
+  const { slug } = params; // Destructure slug from the hook's return value
   const { language } = useLanguage();
   const [service, setService] = useState<Service | null | undefined>(undefined); // Initial state undefined for loading
 
   useEffect(() => {
+    // Find the service based on the slug from useParams
     const foundService = allServices.find(s => s.slug === slug);
     setService(foundService ?? null); // Set to null if not found after check
-  }, [slug]);
+  }, [slug]); // Depend on slug from params
 
   // Handle loading state
   if (service === undefined) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 md:space-y-8">
          {/* Skeleton Loading State */}
          <div className="animate-pulse">
            <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
@@ -69,7 +72,7 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
       {/* Service Title */}
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-3">
-         {service.icon} {title}
+         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary' })} {title}
       </h1>
 
       {/* Service Image */}
@@ -78,17 +81,18 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
            src={service.imageUrl}
            alt={title}
            fill
+           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw" // Simplify sizes for detail view
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint}
            priority // Prioritize image loading on detail pages
-           unoptimized // Keep if using external URLs like Unsplash
+           unoptimized // Keep if using external URLs like Unsplash/picsum
          />
        </div>
 
       {/* Detailed Description */}
       {/* Use dangerouslySetInnerHTML for the HTML content from the data file */}
        <div
-         className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert space-y-4" // Added spacing
+         className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert space-y-4 text-foreground" // Ensure text color contrasts
          dangerouslySetInnerHTML={{ __html: detailedDescription }}
        />
 
@@ -105,7 +109,22 @@ export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
 
 // Optional: If using dynamic routes often, consider generating static paths
 // export async function generateStaticParams() {
+//   // Make sure allServices is available here if uncommenting
 //   return allServices.map((service) => ({
 //     slug: service.slug,
 //   }));
+// }
+
+// Optional: Add generateMetadata if needed for SEO
+// export async function generateMetadata({ params }: { params: { slug: string } }) {
+//   const service = allServices.find(s => s.slug === params.slug);
+//   if (!service) {
+//     return { title: 'Service Not Found' };
+//   }
+//   // You might want to fetch language dynamically or decide on a default
+//   const title = service.titleDe; // Or titleEn based on logic
+//   return {
+//     title: `${title} | Nginxify Assist`,
+//     description: service.descriptionDe, // Or descriptionEn
+//   };
 // }
