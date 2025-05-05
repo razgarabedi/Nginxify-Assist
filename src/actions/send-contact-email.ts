@@ -22,13 +22,15 @@ type ContactFormData = z.infer<typeof ContactFormSchema>;
 // This provides an early warning if the configuration is missing.
 if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn(
-        "SMTP environment variables (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS) are not fully configured. " +
+        "WARNING: SMTP environment variables (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS) are not fully configured. " +
         "Email sending via the contact form will likely fail. " +
-        "Please configure these in your .env.local file."
+        "Please ensure these are correctly set in your .env.local file or environment."
     );
     // Depending on requirements, you might want to throw an error here
     // if email functionality is absolutely critical and must be configured.
     // throw new Error("Critical SMTP configuration missing in environment variables.");
+} else {
+    console.log("SMTP configuration found in environment variables. Nodemailer transporter will be configured.");
 }
 
 // Configure the Nodemailer transporter using environment variables.
@@ -44,6 +46,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  // Optional: Add debugging for Nodemailer connection issues
+  // logger: true,
+  // debug: true,
 });
 
 /**
@@ -55,48 +60,50 @@ const transporter = nodemailer.createTransport({
 export async function sendContactEmail(data: ContactFormData): Promise<{ success: boolean; message: string }> {
   try {
     // Validate the input data against the schema
-    ContactFormSchema.parse(data);
+    const validatedData = ContactFormSchema.parse(data);
 
-    // Check again at runtime to handle cases where the server started without full env vars
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+    // Runtime check for essential configuration before attempting to send
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.SMTP_PORT) {
+        console.error("Failed to send email due to incomplete SMTP configuration. Check environment variables.");
         throw new Error("SMTP configuration is incomplete. Cannot send email.");
     }
 
     const mailOptions = {
       from: `"Nginxify Assist Kontakt" <${process.env.SMTP_USER}>`, // Sender address (must be authenticated user)
-      replyTo: data.email, // Set reply-to to the submitter's email
+      replyTo: validatedData.email, // Set reply-to to the submitter's email
       to: 'hilfe@nginxify.com', // Recipient address
-      subject: `Neue Kontaktanfrage: ${data.subject}`,
+      subject: `Neue Kontaktanfrage: ${validatedData.subject}`,
       text: `
         Neue Nachricht über das Kontaktformular erhalten:
 
-        Name: ${data.name}
-        E-Mail: ${data.email}
-        Betreff: ${data.subject}
+        Name: ${validatedData.name}
+        E-Mail: ${validatedData.email}
+        Betreff: ${validatedData.subject}
 
         Nachricht:
-        ${data.message}
+        ${validatedData.message}
 
-        ${data.technicalDetails ? `Technische Details:\n${data.technicalDetails}` : ''}
+        ${validatedData.technicalDetails ? `Technische Details:\n${validatedData.technicalDetails}` : ''}
       `,
       html: `
         <h2>Neue Nachricht über das Kontaktformular</h2>
-        <p><strong>Name:</strong> ${data.name}</p>
-        <p><strong>E-Mail:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
-        <p><strong>Betreff:</strong> ${data.subject}</p>
+        <p><strong>Name:</strong> ${validatedData.name}</p>
+        <p><strong>E-Mail:</strong> <a href="mailto:${validatedData.email}">${validatedData.email}</a></p>
+        <p><strong>Betreff:</strong> ${validatedData.subject}</p>
         <hr>
         <h3>Nachricht:</h3>
-        <p style="white-space: pre-wrap;">${data.message}</p>
-        ${data.technicalDetails ? `
+        <p style="white-space: pre-wrap;">${validatedData.message}</p>
+        ${validatedData.technicalDetails ? `
           <hr>
           <h3>Technische Details:</h3>
-          <p style="white-space: pre-wrap;">${data.technicalDetails}</p>
+          <p style="white-space: pre-wrap;">${validatedData.technicalDetails}</p>
         ` : ''}
       `,
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log('Contact email sent successfully from:', data.email);
+    console.log(`Attempting to send email to ${mailOptions.to} from ${mailOptions.from}...`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Contact email sent successfully! Message ID:', info.messageId);
     return { success: true, message: 'Email sent successfully!' };
 
   } catch (error) {
@@ -104,8 +111,23 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
       console.error('Form validation failed:', error.errors);
       return { success: false, message: 'Invalid form data.' };
     }
-    console.error('Failed to send contact email:', error);
-    // Provide a generic error message to the user
-    return { success: false, message: 'Failed to send email. Please try again later or contact us directly.' };
+
+    // Log more specific Nodemailer/SMTP errors to the server console
+    console.error('Failed to send contact email. Error details:', error);
+    let errorMessage = 'Failed to send email. Please try again later or contact us directly.';
+
+    // Check if it's a Nodemailer specific error for more context (optional, but can be helpful)
+    if (error && typeof error === 'object') {
+      // Nodemailer errors often have 'code', 'command', 'response' properties
+      const code = (error as any).code;
+      const command = (error as any).command;
+      console.error(`Nodemailer Error Code: ${code}, Command: ${command}`);
+      // You could potentially customize the client message based on the code, but keep it general
+      // e.g., if (code === 'EAUTH') errorMessage = 'Authentication failed. Please check SMTP credentials.';
+    }
+
+
+    // Provide a generic error message to the client for security
+    return { success: false, message: errorMessage };
   }
 }

@@ -1,8 +1,44 @@
+
 # NextJS App with Firebase Studio
 
 This is a NextJS application integrated with Firebase Studio. It serves as a starter project to build web applications using NextJS with Firebase as a backend.
 
 To get started with development, you can examine `src/app/page.tsx` to understand the basic page structure.
+
+## Environment Variables
+
+This application requires certain environment variables to function correctly, especially for features like sending emails via the contact form.
+
+**Contact Form (Email Sending):**
+
+To enable the contact form to send emails, you need to configure SMTP server details. Create a file named `.env.local` in the project root and add the following variables, replacing the placeholder values with your actual SMTP credentials:
+
+```plaintext
+# .env.local
+
+# IMPORTANT: Replace these placeholder values with your actual SMTP server details.
+# Do not commit this file with real credentials to version control.
+
+# SMTP Server Hostname (e.g., smtp.example.com)
+SMTP_HOST=your_smtp_host
+
+# SMTP Server Port (e.g., 587 for TLS, 465 for SSL, 25 for unencrypted)
+SMTP_PORT=587
+
+# SMTP Username (usually your email address or a specific sending username)
+SMTP_USER=your_smtp_username
+
+# SMTP Password (your email password or an app-specific password/API key)
+SMTP_PASS=your_smtp_password
+
+# Optional: Google GenAI API Key (if using Genkit features)
+# GOOGLE_GENAI_API_KEY=your_google_genai_api_key
+```
+
+**Important:**
+*   Ensure the `.env.local` file is added to your `.gitignore` file to prevent accidentally committing sensitive credentials.
+*   If deploying, configure these environment variables in your hosting provider's settings.
+*   Using app-specific passwords or API keys is generally more secure than using your primary email account password.
 
 ## Deployment on Ubuntu with Nginx
 
@@ -13,50 +49,109 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
 *   An Ubuntu server with root or sudo access.
 *   Node.js and npm/yarn installed.
 *   Nginx installed.
+*   The necessary environment variables (like SMTP settings) configured on the server.
 
 **Steps:**
 
 1.  **Build the NextJS Application:**
     Navigate to the project root directory in your terminal and build the application for production:
 
-Build the Next.js application:
+    ```bash
+    npm run build
+    ```
 
-npm run build
-Install Nginx:
+2.  **Install Nginx:**
 
-sudo apt update
-sudo apt install nginx
-Create Nginx configuration file: Create a new configuration file for the Next.js application in /etc/nginx/sites-available/. For example, sudo nano /etc/nginx/sites-available/nginxify. The configuration should look like this:
+    ```bash
+    sudo apt update
+    sudo apt install nginx
+    ```
 
-server {
-    listen 80;
-    server_name localhost; # Replace with your domain or IP
+3.  **Create Nginx configuration file:**
+    Create a new configuration file for the Next.js application in `/etc/nginx/sites-available/`. For example, `sudo nano /etc/nginx/sites-available/nginxify`. The configuration should look like this:
 
-    root /path/to/your/nextjs/app/.next/server/pages; # Corrected path to serve static files
+    ```nginx
+    server {
+        listen 80;
+        server_name localhost; # Replace with your domain or IP
 
-    location / {
-        try_files $uri $uri/ /index.html;
+        location / {
+            # Reverse proxy requests to the running Next.js app (default port 3000)
+            proxy_pass http://localhost:3000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Optional: Improve caching for static assets (adjust path if needed)
+        location /_next/static {
+            alias /path/to/your/nextjs/app/.next/static;
+            expires 30d;
+            add_header Cache-Control "public";
+        }
+
+        # Optional: Deny access to internal Next.js server files
+        location ~ ^/\.next/(server|static|webpack)/ {
+            deny all;
+        }
     }
+    ```
+    *   Replace `/path/to/your/nextjs/app` with the actual path to the Next.js application.
+    *   Ensure the `proxy_pass` directive points to the correct port your Next.js app runs on (default is 3000 when using `npm start`).
 
-    location /_next/static {
-        alias /path/to/your/nextjs/app/.next/static; # Corrected path to serve static files
-        expires 30d;
-        add_header Cache-Control public;
-    }
-}
-Replace /path/to/your/nextjs/app with the actual path to the Next.js application.
-Enable the site:
+4.  **Enable the site:**
 
-sudo ln -s /etc/nginx/sites-available/nginxify /etc/nginx/sites-enabled
-Test the Nginx configuration:
+    ```bash
+    sudo ln -s /etc/nginx/sites-available/nginxify /etc/nginx/sites-enabled/
+    # Remove the default Nginx site if it conflicts
+    sudo rm /etc/nginx/sites-enabled/default
+    ```
 
-sudo nginx -t
-Reload Nginx:
+5.  **Test the Nginx configuration:**
 
-sudo systemctl reload nginx
-Install PM2:
+    ```bash
+    sudo nginx -t
+    ```
 
-sudo npm install -g pm2
-Run Next.js app with PM2
+6.  **Reload Nginx:**
 
-pm2 start npm --name "nginxify" -- start
+    ```bash
+    sudo systemctl reload nginx
+    ```
+
+7.  **Install PM2:**
+    PM2 is a process manager that helps keep your Node.js application running.
+
+    ```bash
+    sudo npm install -g pm2
+    ```
+
+8.  **Run Next.js app with PM2:**
+    Navigate to your project directory and start the app:
+
+    ```bash
+    # Ensure environment variables are set for the PM2 process if not globally available
+    # Example (if variables are in .env.local and you use dotenv):
+    # npm install dotenv --save-dev (if not already installed)
+    # Modify your package.json start script: "start": "node -r dotenv/config node_modules/next/dist/bin/next start"
+    # Or load variables directly:
+    # export $(grep -v '^#' .env.local | xargs) && pm2 start npm --name "nginxify" -- start
+
+    # Start the app using the 'start' script from package.json
+    pm2 start npm --name "nginxify" -- start
+    ```
+
+9.  **Configure PM2 to start on boot:**
+
+    ```bash
+    pm2 startup systemd
+    # Follow the instructions provided by the command (usually involves running a command with sudo)
+    pm2 save
+    ```
+
+Now your Next.js application should be running behind the Nginx reverse proxy, managed by PM2. Access it via your server's IP address or configured domain name.
