@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react'; // Import React
+import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,9 +18,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Info } from 'lucide-react';
+import { Mail, Info, Send } from 'lucide-react'; // Added Send icon
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useLanguage } from '@/context/language-context'; // Import useLanguage hook
+import { useLanguage } from '@/context/language-context';
+import { sendContactEmail } from '@/actions/send-contact-email'; // Import the server action
 
 // Define Zod schema for form validation (with dynamic messages)
 const getFormSchema = (language: 'de' | 'en') => z.object({
@@ -40,9 +41,10 @@ const getFormSchema = (language: 'de' | 'en') => z.object({
 });
 
 export default function ContactPage() {
-  const { language } = useLanguage(); // Use context
+  const { language } = useLanguage();
   const { toast } = useToast();
-  const formSchema = getFormSchema(language); // Get schema based on language
+  const formSchema = getFormSchema(language);
+  const [isSubmitting, setIsSubmitting] = React.useState(false); // State for submission status
 
   // Initialize react-hook-form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,31 +58,49 @@ export default function ContactPage() {
     },
   });
 
-   // Re-initialize form on language change to update validation messages
+  // Re-initialize form on language change to update validation messages
   React.useEffect(() => {
     form.reset(form.getValues()); // Reset with current values to keep data
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]); // Dependency on language
+  }, [language, form]); // Dependency on language and form
 
-
-  // Handle form submission
+  // Handle form submission using the server action
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // TODO: Implement actual form submission logic (e.g., send email, save to DB)
-    console.log('Form submitted:', values);
+    setIsSubmitting(true); // Set submitting state
+    try {
+      const result = await sendContactEmail(values);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast({
-      title: language === 'en' ? 'Message Sent!' : 'Nachricht gesendet!',
-      description: language === 'en'
-        ? 'Thank you for your inquiry. We will get back to you soon.'
-        : 'Vielen Dank für Ihre Anfrage. Wir werden uns bald bei Ihnen melden.',
-      variant: 'default', // Use 'default' which maps to green accent via CSS variables
-    });
-
-    // Reset form after successful submission
-    form.reset();
+      if (result.success) {
+        toast({
+          title: language === 'en' ? 'Message Sent!' : 'Nachricht gesendet!',
+          description: language === 'en'
+            ? 'Thank you for your inquiry. We will get back to you soon.'
+            : 'Vielen Dank für Ihre Anfrage. Wir werden uns bald bei Ihnen melden.',
+          variant: 'default',
+        });
+        form.reset(); // Reset form on success
+      } else {
+        // Display a more specific error if available, otherwise generic
+        toast({
+          title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
+          description: result.message || (language === 'en'
+            ? 'Could not send your message. Please try again later or contact us directly.'
+            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns direkt.'),
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      // Catch unexpected errors during the action call itself
+      console.error("Unexpected error during form submission:", error);
+      toast({
+        title: language === 'en' ? 'Unexpected Error' : 'Unerwarteter Fehler',
+        description: language === 'en'
+          ? 'An unexpected error occurred. Please try again.'
+          : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false); // Reset submitting state
+    }
   }
 
   return (
@@ -190,10 +210,15 @@ export default function ContactPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={form.formState.isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                {form.formState.isSubmitting
-                  ? (language === 'en' ? 'Sending...' : 'Sende...')
-                  : (language === 'en' ? 'Send Request' : 'Anfrage Senden')}
+              <Button type="submit" disabled={isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                {isSubmitting ? (
+                   language === 'en' ? 'Sending...' : 'Sende...'
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" /> {/* Added icon */}
+                    {language === 'en' ? 'Send Request' : 'Anfrage Senden'}
+                  </>
+                )}
               </Button>
             </form>
           </Form>
