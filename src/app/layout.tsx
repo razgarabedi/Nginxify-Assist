@@ -27,7 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de"> {/* Consider making lang dynamic based on context if needed */}
+    // Consider making lang dynamic based on context if needed
+    <html lang="de">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
