@@ -40,16 +40,16 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
-// Match the original ShadCN pattern: do not explicitly destructure `children` if spreading `...props`.
+// Explicitly handle children to avoid potential issues with Slot
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => { // Destructure children explicitly
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props} // `children` is included in `props` and passed correctly to Slot or button
-      />
+        {...props} // Spread remaining props
+      >{children}</Comp> // Pass children explicitly inside the Comp
     );
   }
 );
