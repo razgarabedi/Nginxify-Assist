@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -16,10 +17,17 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      { // Added unsplash.com hostname
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
-    unoptimized: true, // Allow unoptimized images for external URLs like picsum
+    // Removed unoptimized: true - Let Next.js optimize images
   },
    // Removed i18n configuration as it's handled by context now
 };
 
 export default nextConfig;
+

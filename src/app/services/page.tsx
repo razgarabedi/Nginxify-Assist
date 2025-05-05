@@ -118,7 +118,7 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint }: ServiceC
           style={{ objectFit: 'cover' }}
           className="transition-transform duration-300 group-hover:scale-105"
           data-ai-hint={imageHint}
-          unoptimized // Keep for picsum or external URLs if not using Next/Image optimization
+          // Removed unoptimized prop
         />
       </div>
       <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2"> {/* Consistent padding */}

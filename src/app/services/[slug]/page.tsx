@@ -1,35 +1,36 @@
 
 'use client';
 
-import React, { useEffect, useState, use } from 'react'; // Ensure React and 'use' hook are imported
-import { useParams, notFound } from 'next/navigation'; // Import useParams
+import React, { useEffect, useState, use } from 'react';
+import { useParams, notFound } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { allServices, type Service } from '@/lib/services-data';
 import Image from "next/image";
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Interface for props is not strictly needed when using useParams hook
-// interface ServiceDetailPageProps {
-//   params: { slug: string };
-// }
+// Interface for props
+interface ServiceDetailPageProps {
+  params: { slug: string };
+}
 
-export default function ServiceDetailPage() {
-  // Use the `use` hook to get params in Client Components
-  const params = useParams<{ slug: string }>();
-  // Using `use(params)` is not the standard way. `params` is already available.
-  const { slug } = params; // Direct access is fine after useParams
+export default function ServiceDetailPage({ params }: ServiceDetailPageProps) {
+  // Use the `use` hook to get params in Client Components if needed, or access directly from props
+   // const params = useParams<{ slug: string }>(); // Can use hook or props
+   // Using props is simpler here as they are passed by Next.js
+   const { slug } = params;
+
 
   const { language } = useLanguage();
   const [service, setService] = useState<Service | null | undefined>(undefined); // Initial state undefined for loading
 
   useEffect(() => {
-    // Find the service based on the slug from useParams
+    // Find the service based on the slug from props
     const foundService = allServices.find(s => s.slug === slug);
     setService(foundService ?? null); // Set to null if not found after check
-  }, [slug]); // Depend on slug from params
+  }, [slug]); // Depend on slug from props
 
   // Handle loading state
   if (service === undefined) {
@@ -99,7 +100,7 @@ export default function ServiceDetailPage() {
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint}
            priority // Prioritize image loading on detail pages
-           // unoptimized // Keep if using external URLs like Unsplash/picsum - removed as placeholder URLs were replaced
+           // Removed unoptimized prop
          />
        </div>
 
@@ -126,3 +127,4 @@ export default function ServiceDetailPage() {
 
 // Removed generateMetadata as it cannot be exported from a 'use client' component.
 // Metadata should be handled in a parent layout or potentially via client-side updates if needed.
+
