@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 204 17% 96%; /* Light Grey */
@@ -84,6 +80,7 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    /* Removed font-family definition here */
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

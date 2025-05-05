@@ -1,10 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle, SheetClose
 import { Menu, Globe, LifeBuoy } from 'lucide-react';
 import {
   DropdownMenu,
@@ -38,55 +39,61 @@ export default function Header() {
     <nav
       className={cn(
         'flex gap-4',
-        isMobile ? 'flex-col space-y-2 mt-4' : 'items-center'
+        isMobile ? 'flex-col space-y-4 pt-4' : 'items-center' // Increased space-y for mobile
       )}
     >
       {navigationItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={() => isMobile && setIsMobileMenuOpen(false)}
-          className={cn(
-            'text-sm font-medium transition-colors hover:text-primary',
-            pathname === item.href ? 'text-primary' : 'text-muted-foreground'
-          )}
-        >
-          {getLabel(item)}
-        </Link>
+         <SheetClose asChild key={item.href} disabled={!isMobile}>
+           <Link
+              href={item.href}
+              onClick={() => isMobile && setIsMobileMenuOpen(false)}
+              className={cn(
+                'text-sm font-medium transition-colors hover:text-primary',
+                pathname === item.href ? 'text-primary font-semibold' : 'text-muted-foreground', // Highlight active link better
+                isMobile ? 'text-base py-2 px-4 rounded-md hover:bg-accent' : '' // Style mobile links
+              )}
+            >
+              {getLabel(item)}
+            </Link>
+         </SheetClose>
       ))}
     </nav>
   );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
+      <div className="container flex h-16 items-center px-4 md:px-6"> {/* Increased height slightly and added horizontal padding */}
+        <Link href="/" className="mr-4 md:mr-6 flex items-center space-x-2"> {/* Adjusted margin */}
           <LifeBuoy className="h-6 w-6 text-primary" />
           {/* Title is not translated here, assuming brand name */}
-          <span className="font-bold">Nginxify Assist</span>
+          <span className="font-bold hidden sm:inline-block">Nginxify Assist</span> {/* Hide text on very small screens */}
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex flex-1 items-center justify-end space-x-4">
+        <div className="hidden md:flex flex-1 items-center justify-end space-x-4 lg:space-x-6"> {/* Adjusted spacing */}
           <NavLinks />
           <LanguageSwitcher language={language} setLanguage={setLanguage} />
         </div>
 
-        {/* Mobile Navigation */}
-        <div className="md:hidden flex flex-1 justify-end">
+        {/* Mobile Navigation Trigger */}
+        <div className="md:hidden flex flex-1 justify-end items-center gap-2"> {/* Use gap */}
           <LanguageSwitcher language={language} setLanguage={setLanguage} />
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
+              <Button variant="ghost" size="icon" className="rounded-full"> {/* Make it round */}
+                <Menu className="h-5 w-5" /> {/* Slightly smaller icon */}
                 <span className="sr-only">{language === 'en' ? 'Open menu' : 'Menü öffnen'}</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
-              <Link href="/" className="flex items-center space-x-2 mb-6" onClick={() => setIsMobileMenuOpen(false)}>
-                 <LifeBuoy className="h-6 w-6 text-primary" />
-                 <span className="font-bold">Nginxify Assist</span>
-              </Link>
+            <SheetContent side="right" className="w-[280px] sm:w-[320px]"> {/* Set width */}
+               <SheetHeader className="border-b pb-4 mb-4">
+                  <SheetTitle>
+                     <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                       <LifeBuoy className="h-6 w-6 text-primary" />
+                       <span className="font-bold">Nginxify Assist</span>
+                    </Link>
+                 </SheetTitle>
+              </SheetHeader>
               <NavLinks isMobile={true} />
             </SheetContent>
           </Sheet>
@@ -101,8 +108,8 @@ const LanguageSwitcher = ({ language, setLanguage }: { language: 'de' | 'en'; se
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Globe className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="rounded-full"> {/* Make it round */}
+          <Globe className="h-5 w-5" /> {/* Slightly smaller icon */}
           <span className="sr-only">{language === 'en' ? 'Change language' : 'Sprache wechseln'}</span>
         </Button>
       </DropdownMenuTrigger>
@@ -110,12 +117,14 @@ const LanguageSwitcher = ({ language, setLanguage }: { language: 'de' | 'en'; se
         <DropdownMenuItem
           onClick={() => setLanguage('de')}
           disabled={language === 'de'}
+          className={cn(language === 'de' && 'font-semibold bg-accent')} // Highlight selected
         >
           Deutsch
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setLanguage('en')}
           disabled={language === 'en'}
+          className={cn(language === 'en' && 'font-semibold bg-accent')} // Highlight selected
         >
           English
         </DropdownMenuItem>

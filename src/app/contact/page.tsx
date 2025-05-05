@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Info, Send } from 'lucide-react';
+import { Mail, Info, Send, Loader2 } from 'lucide-react'; // Added Loader2
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from '@/context/language-context';
 import { sendContactEmail } from '@/actions/send-contact-email';
@@ -56,20 +56,19 @@ export default function ContactPage() {
       message: '',
       technicalDetails: '',
     },
+    mode: 'onChange', // Validate on change for better UX
   });
 
-  // Update schema and resolver when language changes
+  // Update schema and reset form validation when language changes
   useEffect(() => {
     const newSchema = getFormSchema(language);
     setFormSchema(newSchema);
-    // Manually update the resolver in the form instance
-    form.reset(form.getValues(), {
-       keepValues: true, // Keep entered values
-       // @ts-ignore - We know the resolver exists and needs updating. Type inference struggles here.
-       resolver: zodResolver(newSchema),
-    });
-    // Optionally trigger re-validation if needed immediately
-    // form.trigger();
+    // Update the resolver dynamically and re-validate
+    // Use any type assertion temporarily if TS complains about resolver update method
+    (form as any)._resolver = zodResolver(newSchema);
+    // Re-trigger validation to show new messages if errors exist
+    form.trigger();
+
   }, [language, form]);
 
 
@@ -77,7 +76,7 @@ export default function ContactPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true); // Set submitting state
     try {
-      // Re-validate before submitting, especially if language changed
+      // Re-validate explicitly before submitting
       const isValid = await form.trigger();
       if (!isValid) {
           toast({
@@ -89,7 +88,9 @@ export default function ContactPage() {
           return;
       }
 
+      console.log("SERVER-INFO: Sending data to server action:", values); // Log data being sent
       const result = await sendContactEmail(values);
+      console.log("SERVER-INFO: Received result from server action:", result); // Log result
 
       if (result.success) {
         toast({
@@ -102,24 +103,21 @@ export default function ContactPage() {
         form.reset(); // Reset form on success
       } else {
         // Display the specific *generic* error message from the server action
-        // Server action returns a message like "English Message / German Message"
         const messages = result.message.split(' / ');
-        const displayMessage = language === 'en' ? messages[0] : messages[1] || messages[0]; // Fallback to English if German is missing
+        const displayMessage = language === 'en' ? messages[0] : (messages[1] || messages[0]); // Fallback to English if German is missing
 
         toast({
           title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
-          // Display the appropriate language part of the message
-          description: displayMessage || (language === 'en' // Fallback just in case message format is unexpected
+          description: displayMessage || (language === 'en'
             ? 'Could not send your message. Please try again later.'
             : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'),
           variant: 'destructive',
         });
-        // Log the GENERIC message received from the server to the BROWSER console.
-        // NOTE: For detailed SMTP errors, check the SERVER console logs where the Next.js app is running.
+        // Log the full server message to console for debugging if needed
         console.error("Server Action Error:", result.message);
       }
     } catch (error) {
-      // Catch unexpected errors during the action call itself (e.g., network issue calling the action)
+      // Catch unexpected errors during the action call itself
       console.error("Unexpected error during form submission:", error);
       toast({
         title: language === 'en' ? 'Unexpected Error' : 'Unerwarteter Fehler',
@@ -134,22 +132,22 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="space-y-12">
-      <section className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight mb-4">{language === 'en' ? 'Contact Us' : 'Kontaktieren Sie Uns'}</h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+    <div className="space-y-10 md:space-y-12">
+      <section className="text-center px-4">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{language === 'en' ? 'Contact Us' : 'Kontaktieren Sie Uns'}</h1>
+        <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto">
           {language === 'en'
             ? 'Have a question or need IT support? Fill out the form or send us an email.'
             : 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.'}
         </p>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 px-4 md:px-0">
         {/* Contact Form */}
-        <div className="space-y-6">
+        <div className="space-y-6 order-2 lg:order-1">
            <h2 className="text-2xl font-semibold">{language === 'en' ? 'Inquiry Form' : 'Anfrageformular'}</h2>
             <Alert>
-              <Info className="h-4 w-4" />
+              <Info className="h-4 w-4 mt-1" /> {/* Added mt-1 for alignment */}
               <AlertTitle>{language === 'en' ? 'Important Information for Your Request' : 'Wichtige Informationen für Ihre Anfrage'}</AlertTitle>
               <AlertDescription>
                 {language === 'en'
@@ -159,6 +157,7 @@ export default function ContactPage() {
             </Alert>
            <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Use grid for name/email on medium screens and up */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -240,9 +239,12 @@ export default function ContactPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-primary hover:bg-primary/90"> {/* Use primary color */}
                 {isSubmitting ? (
-                   language === 'en' ? 'Sending...' : 'Sende...'
+                   <>
+                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                     {language === 'en' ? 'Sending...' : 'Sende...'}
+                   </>
                 ) : (
                   <>
                     <Send className="mr-2 h-4 w-4" />
@@ -255,21 +257,21 @@ export default function ContactPage() {
         </div>
 
         {/* Contact Info */}
-        <div className="space-y-6">
+        <div className="space-y-6 order-1 lg:order-2">
           <h2 className="text-2xl font-semibold">{language === 'en' ? 'Direct Contact' : 'Direkter Kontakt'}</h2>
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 p-4 border rounded-lg bg-card"> {/* Added card style */}
             <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
             <div>
               <h3 className="font-medium">{language === 'en' ? 'Email' : 'E-Mail'}</h3>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm"> {/* Adjusted size */}
                 {language === 'en'
                   ? 'You can also email us directly:'
                   : 'Sie können uns auch direkt eine E-Mail schreiben:'}
               </p>
-              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all">
+              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all font-medium">
                 hilfe@nginxify.com
               </a>
-               <p className="text-sm text-muted-foreground mt-2">
+               <p className="text-xs text-muted-foreground mt-2"> {/* Adjusted size */}
                 {language === 'en'
                   ? 'Please provide as many details as possible about your concern here as well.'
                   : 'Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.'}
@@ -277,6 +279,16 @@ export default function ContactPage() {
             </div>
           </div>
            {/* Optional: Add other contact methods like phone if applicable */}
+           {/* Example:
+           <div className="flex items-start gap-4 p-4 border rounded-lg bg-card">
+             <Phone className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+             <div>
+               <h3 className="font-medium">{language === 'en' ? 'Phone' : 'Telefon'}</h3>
+               <p className="text-muted-foreground text-sm"> Reach us during business hours:</p>
+               <a href="tel:+49123456789" className="text-primary hover:underline font-medium"> +49 123 456789</a>
+             </div>
+           </div>
+           */}
         </div>
       </section>
     </div>
