@@ -1,0 +1,206 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { Mail, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+
+// Define Zod schema for form validation
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: 'Name muss mindestens 2 Zeichen lang sein.',
+  }),
+  email: z.string().email({
+    message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+  }),
+  subject: z.string().min(5, {
+    message: 'Betreff muss mindestens 5 Zeichen lang sein.',
+  }),
+  message: z.string().min(10, {
+    message: 'Nachricht muss mindestens 10 Zeichen lang sein.',
+  }),
+  technicalDetails: z.string().optional(), // Optional field for technical details
+});
+
+export default function ContactPage() {
+  const { toast } = useToast();
+
+  // Initialize react-hook-form
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      subject: '',
+      message: '',
+      technicalDetails: '',
+    },
+  });
+
+  // Handle form submission
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    // TODO: Implement actual form submission logic (e.g., send email, save to DB)
+    console.log('Form submitted:', values);
+
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    toast({
+      title: 'Nachricht gesendet!',
+      description: 'Vielen Dank für Ihre Anfrage. Wir werden uns bald bei Ihnen melden.',
+      variant: 'default', // Use 'default' which maps to green accent via CSS variables
+    });
+
+    // Reset form after successful submission
+    form.reset();
+  }
+
+  return (
+    <div className="space-y-12">
+      <section className="text-center">
+        <h1 className="text-4xl font-bold tracking-tight mb-4">Kontaktieren Sie Uns</h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.
+        </p>
+      </section>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {/* Contact Form */}
+        <div className="space-y-6">
+           <h2 className="text-2xl font-semibold">Anfrageformular</h2>
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Wichtige Informationen für Ihre Anfrage</AlertTitle>
+              <AlertDescription>
+                Um Ihnen bestmöglich helfen zu können, beschreiben Sie Ihr Problem bitte so detailliert wie möglich. Geben Sie bei technischen Problemen bitte auch Informationen zu Ihrem Gerät (z.B. Betriebssystem, Modell) an, falls relevant.
+              </AlertDescription>
+            </Alert>
+           <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ihr Name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-Mail</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="ihre@email.de" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="subject"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Betreff</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Worum geht es?" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ihre Nachricht / Problembeschreibung</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Beschreiben Sie Ihr Anliegen..."
+                        className="min-h-[120px]"
+                        {...field}
+                      />
+                    </FormControl>
+                     <FormDescription>
+                        Je detaillierter, desto besser können wir helfen.
+                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="technicalDetails"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Technische Details (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="z.B. Betriebssystem, Gerätemodell, verwendete Software..."
+                        className="min-h-[80px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                        Falls relevant für Ihr Problem.
+                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={form.formState.isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                {form.formState.isSubmitting ? 'Sende...' : 'Anfrage Senden'}
+              </Button>
+            </form>
+          </Form>
+        </div>
+
+        {/* Contact Info */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold">Direkter Kontakt</h2>
+          <div className="flex items-start gap-4">
+            <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="font-medium">E-Mail</h3>
+              <p className="text-muted-foreground">
+                Sie können uns auch direkt eine E-Mail schreiben:
+              </p>
+              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all">
+                hilfe@nginxify.com
+              </a>
+               <p className="text-sm text-muted-foreground mt-2">
+                Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.
+               </p>
+            </div>
+          </div>
+           {/* Optional: Add other contact methods like phone if applicable */}
+        </div>
+      </section>
+    </div>
+  );
+}
