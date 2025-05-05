@@ -16,7 +16,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Help setting up simple websites (e.g., with website builders or WordPress) to present your club.'
         : 'Hilfe bei der Einrichtung einfacher Webseiten (z.B. mit Baukastensystemen oder WordPress) zur Vorstellung Ihres Vereins.',
-      imageUrl: "https://picsum.photos/400/250?random=1",
+      imageUrl: "https://fastly.picsum.photos/id/4/5000/3333.jpg?hmac=ghf06FdmgiD0-G4c9DdNM8RnBIN7BO0-ZGEw47khHP4",
       imageHint: "website development code",
     },
     {
@@ -25,7 +25,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Support in selecting and basically setting up tools for communication, organization, or member management.'
         : 'Unterstützung bei der Auswahl und grundlegenden Einrichtung von Tools für Kommunikation, Organisation oder Mitgliederverwaltung.',
-      imageUrl: "https://picsum.photos/400/250?random=2",
+      imageUrl: "https://fastly.picsum.photos/id/26/4209/2769.jpg?hmac=vcInmowFvPCyKGtV7Vfh7zWcA_Z0kStrPDW3ppP0iGI",
       imageHint: "collaboration tools digital",
     },
     {
@@ -34,7 +34,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Basic tips and advice on improving the IT security of your organization.'
         : 'Grundlegende Tipps und Hinweise zur Verbesserung der IT-Sicherheit Ihrer Organisation.',
-      imageUrl: "https://picsum.photos/400/250?random=3",
+      imageUrl: "https://fastly.picsum.photos/id/146/5000/3333.jpg?hmac=xdlFnzoavokA3U-bzo35Vk4jTBKx8C9fqH5IuCPXj2U",
       imageHint: "cyber security shield",
     },
     {
@@ -43,7 +43,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Advice and help with general technical questions within our capacity.'
         : 'Beratung und Hilfe bei allgemeinen technischen Fragen im Rahmen unserer Kapazitäten.',
-      imageUrl: "https://picsum.photos/400/250?random=4",
+      imageUrl: "https://fastly.picsum.photos/id/341/5000/3337.jpg?hmac=au9Ex3OCaHWkfF3Ttoe4sXkQOsGPGeA1vrRwhmB2aug",
       imageHint: "support helpdesk headset",
     },
   ];
@@ -55,7 +55,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Support with simple problems on your PC, laptop, or smartphone (e.g., setup, software questions).'
         : 'Unterstützung bei einfachen Problemen mit Ihrem PC, Laptop oder Smartphone (z.B. Einrichtung, Softwarefragen).',
-      imageUrl: "https://picsum.photos/400/250?random=5",
+      imageUrl: "https://fastly.picsum.photos/id/504/5000/3333.jpg?hmac=tciW_3YQNlNNRCEM360bpaoyliNKAZ4aioVTTNLmTZk",
       imageHint: "computer help support",
     },
     {
@@ -64,7 +64,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Advice on safe browsing, password management, and protection against common online threats.'
         : 'Beratung zu sicherem Surfen, Passwortmanagement und Schutz vor gängigen Online-Bedrohungen.',
-      imageUrl: "https://picsum.photos/400/250?random=6",
+      imageUrl: "https://fastly.picsum.photos/id/336/1600/1060.jpg?hmac=V0ApxMul9odmMOXCPn6z_NHFnFT_-SmbQfpzughJahU",
       imageHint: "online safety internet security",
     },
      {
@@ -73,7 +73,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Explanation of basic functions of websites or online services.'
         : 'Erklärung grundlegender Funktionen von Webseiten oder Online-Diensten.',
-      imageUrl: "https://picsum.photos/400/250?random=7",
+      imageUrl: "https://fastly.picsum.photos/id/618/2509/1673.jpg?hmac=COcy9vwoZ9UeEJvOaFkdvr1zroYRFrc7SOUYp-wkyQs",
       imageHint: "learning website browser",
     },
      {
@@ -82,7 +82,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Assistance with simple technical questions in everyday life, as far as our volunteer possibilities allow.'
         : 'Hilfestellung bei einfachen technischen Fragen im Alltag, soweit es unsere ehrenamtlichen Möglichkeiten zulassen.',
-       imageUrl: "https://picsum.photos/400/250?random=8",
+       imageUrl: "https://fastly.picsum.photos/id/352/3264/2176.jpg?hmac=3yabp6hSm3kYnpkVROyHcC_yE0AH6eRGotMnyBnPnRc",
        imageHint: "question mark technology",
     },
   ];
