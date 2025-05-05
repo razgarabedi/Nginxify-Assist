@@ -16,7 +16,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Help setting up simple websites (e.g., with website builders or WordPress) to present your club.'
         : 'Hilfe bei der Einrichtung einfacher Webseiten (z.B. mit Baukastensystemen oder WordPress) zur Vorstellung Ihres Vereins.',
-      imageUrl: "https://picsum.photos/400/250?random=1",
+      imageUrl: "https://picsum.photos/seed/website-code/400/250", // Seeded image
       imageHint: "website development code",
     },
     {
@@ -25,7 +25,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Support in selecting and basically setting up tools for communication, organization, or member management.'
         : 'Unterstützung bei der Auswahl und grundlegenden Einrichtung von Tools für Kommunikation, Organisation oder Mitgliederverwaltung.',
-      imageUrl: "https://picsum.photos/400/250?random=2",
+      imageUrl: "https://picsum.photos/seed/collab-tools/400/250", // Seeded image
       imageHint: "collaboration tools digital",
     },
     {
@@ -34,7 +34,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Basic tips and advice on improving the IT security of your organization.'
         : 'Grundlegende Tipps und Hinweise zur Verbesserung der IT-Sicherheit Ihrer Organisation.',
-      imageUrl: "https://picsum.photos/400/250?random=3",
+      imageUrl: "https://picsum.photos/seed/cyber-shield/400/250", // Seeded image
       imageHint: "cyber security shield",
     },
     {
@@ -43,7 +43,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Advice and help with general technical questions within our capacity.'
         : 'Beratung und Hilfe bei allgemeinen technischen Fragen im Rahmen unserer Kapazitäten.',
-      imageUrl: "https://picsum.photos/400/250?random=4",
+      imageUrl: "https://picsum.photos/seed/support-help/400/250", // Seeded image
       imageHint: "support helpdesk headset",
     },
   ];
@@ -55,7 +55,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Support with simple problems on your PC, laptop, or smartphone (e.g., setup, software questions).'
         : 'Unterstützung bei einfachen Problemen mit Ihrem PC, Laptop oder Smartphone (z.B. Einrichtung, Softwarefragen).',
-      imageUrl: "https://picsum.photos/400/250?random=5",
+      imageUrl: "https://picsum.photos/seed/computer-support/400/250", // Seeded image
       imageHint: "computer help support",
     },
     {
@@ -64,7 +64,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Advice on safe browsing, password management, and protection against common online threats.'
         : 'Beratung zu sicherem Surfen, Passwortmanagement und Schutz vor gängigen Online-Bedrohungen.',
-      imageUrl: "https://picsum.photos/400/250?random=6",
+      imageUrl: "https://picsum.photos/seed/online-safety/400/250", // Seeded image
       imageHint: "online safety internet security",
     },
      {
@@ -73,7 +73,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Explanation of basic functions of websites or online services.'
         : 'Erklärung grundlegender Funktionen von Webseiten oder Online-Diensten.',
-      imageUrl: "https://picsum.photos/400/250?random=7",
+      imageUrl: "https://picsum.photos/seed/learn-website/400/250", // Seeded image
       imageHint: "learning website browser",
     },
      {
@@ -82,7 +82,7 @@ export default function ServicesPage() {
       description: language === 'en'
         ? 'Assistance with simple technical questions in everyday life, as far as our volunteer possibilities allow.'
         : 'Hilfestellung bei einfachen technischen Fragen im Alltag, soweit es unsere ehrenamtlichen Möglichkeiten zulassen.',
-       imageUrl: "https://picsum.photos/400/250?random=8",
+       imageUrl: "https://picsum.photos/seed/question-tech/400/250", // Seeded image
        imageHint: "question mark technology",
     },
   ];
@@ -188,3 +188,5 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint, priority =
     </Card>
   );
 }
+
+    
