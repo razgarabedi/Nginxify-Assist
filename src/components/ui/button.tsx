@@ -2,10 +2,8 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
 
-// Keep custom styles like gap-2 and svg sizing
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
@@ -42,22 +40,20 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
-// Explicitly handle children prop based on asChild
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const buttonClassName = cn(buttonVariants({ variant, size, className }));
 
     if (asChild) {
-      // When asChild is true, render Slot and pass children explicitly.
-      // Ensure only valid React element is passed as children to Slot.
-      // React.Children.only will throw if children is not a single element.
+      // When asChild is true, render Slot. Pass className, ref, and other props directly.
+      // Pass children explicitly *inside* the Slot component.
       return (
         <Slot
           className={buttonClassName}
           ref={ref}
-          {...props} // Spread the rest of the props onto Slot
+          {...props} // Spread the *rest* of the props (excluding children, className, ref, variant, size, asChild)
         >
-           {children}
+          {children}
         </Slot>
       );
     }
@@ -67,7 +63,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         className={buttonClassName}
         ref={ref}
-        {...props} // Spread the rest of the props onto the button
+        {...props} // Spread the *rest* of the props
       >
         {children}
       </button>
