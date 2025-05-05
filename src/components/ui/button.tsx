@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -40,36 +41,19 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
+// Reverted to standard ShadCN implementation to fix Slot error
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
-    const buttonClassName = cn(buttonVariants({ variant, size, className }));
-
-    if (asChild) {
-      // When asChild is true, render Slot. Pass className, ref, and other props directly.
-      // Pass children explicitly *inside* the Slot component.
-      return (
-        <Slot
-          className={buttonClassName}
-          ref={ref}
-          {...props} // Spread the *rest* of the props (excluding children, className, ref, variant, size, asChild)
-        >
-          {children}
-        </Slot>
-      );
-    }
-
-    // When asChild is false, render a standard button element.
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
     return (
-      <button
-        className={buttonClassName}
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props} // Spread the *rest* of the props
-      >
-        {children}
-      </button>
-    );
+        {...props}
+      />
+    )
   }
-);
+)
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
