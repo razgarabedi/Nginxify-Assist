@@ -40,15 +40,47 @@ SMTP_PASS=your_smtp_password
 *   If deploying, configure these environment variables in your hosting provider's settings.
 *   Using app-specific passwords or API keys is generally more secure than using your primary email account password.
 
-**Troubleshooting "Error Sending Message" on Contact Page:**
-If you encounter an error like "Error Sending Message" (followed by a more specific message like "Authentication with the email server failed" or "Connection to the email server failed") on the contact page, this indicates a problem occurred on the server while trying to send the email via SMTP.
+**Troubleshooting "Error Sending Message" / "Failed to send Email." on Contact Page:**
 
-*   **Check Server Logs:** The detailed error message from the email server (Nodemailer), including SMTP codes, is **only visible in the server-side logs** (the console/terminal where your Next.js application is running, e.g., `npm run dev` output or `pm2 logs nginxify`). Look for codes like `EAUTH` (authentication failed), `ECONNREFUSED` (connection refused), `ETIMEDOUT` (connection timed out), etc. These logs provide the most precise information for debugging.
-*   **Verify `.env.local`:** Double-check that `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS` in your `.env.local` file are absolutely correct for your email provider. A typo here is a common cause of `EAUTH` errors.
-*   **App Passwords:** Some email providers (like Gmail/Google Workspace) require you to generate and use an "App Password" instead of your regular account password for external applications. Check your email provider's security settings.
-*   **Firewall/Network:** Ensure your server (or local machine if testing) can reach the specified `SMTP_HOST` and `SMTP_PORT`. Firewalls or network configurations might block outgoing connections, leading to `ECONNREFUSED` or `ETIMEDOUT`.
-*   **SSL/TLS Settings:** Ensure the `SMTP_PORT` and the corresponding `secure` setting in `src/actions/send-contact-email.ts` match your provider's requirements (Port 587 usually uses `secure: false` with STARTTLS, Port 465 uses `secure: true`). Incorrect settings can cause connection errors.
-*   **Debugging Tip:** You can uncomment the `transporter.verify()` block within `src/actions/send-contact-email.ts` to test the connection and authentication details *before* attempting to send an email. This can help isolate configuration issues.
+If you encounter a generic error like "Error Sending Message" or "Failed to send Email." (possibly with a German translation) after submitting the contact form, this indicates a problem occurred on the **server** while trying to send the email via SMTP.
+
+**The most crucial step is to CHECK YOUR SERVER LOGS.**
+
+1.  **Check Server Logs (Essential!):**
+    *   The detailed error message from the email server (Nodemailer), including SMTP codes, is **only visible in the server-side logs**.
+    *   This is the console/terminal where your Next.js application is running (e.g., the output of `npm run dev`, `next start`, or `pm2 logs nginxify`).
+    *   Look for messages starting with `SERVER-FEHLER:` or `NODEMAILER FEHLER-INFO:`.
+    *   Common error codes to look for in the logs:
+        *   `EAUTH`: Authentication failed (Incorrect `SMTP_USER` or `SMTP_PASS` in `.env.local`? Does your provider require an App Password?)
+        *   `ECONNREFUSED`: Connection refused (Incorrect `SMTP_HOST` or `SMTP_PORT`? Is a firewall blocking the connection?)
+        *   `ETIMEDOUT`: Connection timed out (Server unreachable? Network issue?)
+        *   `ENOTFOUND`: Hostname not found (Typo in `SMTP_HOST`?)
+        *   `ECONNECTION`: General connection issue.
+    *   **The server logs provide the most precise information for debugging.**
+
+2.  **Verify `.env.local` Configuration:**
+    *   **Triple-check** that `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS` in your `.env.local` file are absolutely correct for your email provider. Even a small typo will cause failures (especially `EAUTH`).
+    *   Make sure the file is named exactly `.env.local` and is in the root of your project.
+    *   After editing `.env.local`, **you must restart your Next.js development server** (`npm run dev`) or production process (`pm2 restart nginxify`) for the changes to take effect.
+
+3.  **App Passwords (Common with Gmail/Google Workspace):**
+    *   Some email providers (like Gmail) require you to generate and use an "App Password" specifically for external applications instead of your regular account password. Check your email provider's security settings.
+
+4.  **Firewall/Network Issues:**
+    *   Ensure your server (or local machine if testing) can reach the specified `SMTP_HOST` on the specified `SMTP_PORT`. Firewalls or network configurations might block outgoing SMTP connections.
+
+5.  **SSL/TLS Settings:**
+    *   Ensure the `SMTP_PORT` and the corresponding `secure` setting in `src/actions/send-contact-email.ts` match your provider's requirements:
+        *   Port `587` usually requires `secure: false` (uses STARTTLS).
+        *   Port `465` usually requires `secure: true` (uses SSL).
+    *   Incorrect settings can cause connection errors.
+
+6.  **Use the Debugging/Verification Block:**
+    *   In `src/actions/send-contact-email.ts`, uncomment the `transporter.verify()` block (marked with `--- SMTP VERBINDUNGSTEST ---`).
+    *   Restart your server and try submitting the form again.
+    *   Check the server logs. If `verify()` fails, it will log a detailed error message *before* trying to send the email, helping you isolate configuration problems (host, port, auth, SSL/TLS) more easily. Remember to comment it out again after successful verification.
+
+**In summary: The "Failed to send Email" message on the frontend is generic. The *real* error details are in your server logs.**
 
 ## Deployment on Ubuntu with Nginx
 
@@ -59,7 +91,7 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
 *   An Ubuntu server with root or sudo access.
 *   Node.js and npm/yarn installed.
 *   Nginx installed.
-*   The necessary environment variables (like SMTP settings in `.env.local` or system environment) configured on the server.
+*   The necessary environment variables (like SMTP settings in `.env.local` or system environment) configured on the server. **Ensure these are correct before deploying.**
 
 **Steps:**
 
@@ -167,4 +199,4 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
     pm2 save
     ```
 
-Now your Next.js application should be running behind the Nginx reverse proxy, managed by PM2. Access it via your server's IP address or configured domain name. Use `pm2 logs nginxify` to view server logs, especially for debugging email sending issues.
+Now your Next.js application should be running behind the Nginx reverse proxy, managed by PM2. Access it via your server's IP address or configured domain name. **Use `pm2 logs nginxify` to view server logs, especially for debugging email sending issues.**

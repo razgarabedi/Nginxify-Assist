@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react'; // Combined imports
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -18,10 +18,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Info, Send } from 'lucide-react'; // Added Send icon
+import { Mail, Info, Send } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from '@/context/language-context';
-import { sendContactEmail } from '@/actions/send-contact-email'; // Import the server action
+import { sendContactEmail } from '@/actions/send-contact-email';
 
 // Define Zod schema for form validation (with dynamic messages)
 const getFormSchema = (language: 'de' | 'en') => z.object({
@@ -43,12 +43,12 @@ const getFormSchema = (language: 'de' | 'en') => z.object({
 export default function ContactPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const formSchema = getFormSchema(language);
+  const [formSchema, setFormSchema] = useState(() => getFormSchema(language)); // Use state for dynamic schema
   const [isSubmitting, setIsSubmitting] = useState(false); // State for submission status
 
   // Initialize react-hook-form
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema), // Use the state-managed schema
     defaultValues: {
       name: '',
       email: '',
@@ -58,13 +58,20 @@ export default function ContactPage() {
     },
   });
 
-  // Re-initialize form on language change to update validation messages
-   useEffect(() => {
-    // Reset form schema validation rules when language changes
-    form.reset(form.getValues(), { keepValues: true }); // Keep entered values
-    // We need a way to re-trigger validation based on the new schema rules
-    // This could involve manually triggering validation or restructuring
-  }, [language, form]); // Add form to dependencies
+  // Update schema and resolver when language changes
+  useEffect(() => {
+    const newSchema = getFormSchema(language);
+    setFormSchema(newSchema);
+    // Manually update the resolver in the form instance
+    form.reset(form.getValues(), {
+       keepValues: true, // Keep entered values
+       // @ts-ignore - We know the resolver exists and needs updating. Type inference struggles here.
+       resolver: zodResolver(newSchema),
+    });
+    // Optionally trigger re-validation if needed immediately
+    // form.trigger();
+  }, [language, form]);
+
 
   // Handle form submission using the server action
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -94,23 +101,25 @@ export default function ContactPage() {
         });
         form.reset(); // Reset form on success
       } else {
-        // Display the specific error message from the server action
-        // Server action now returns a message like "English Message / German Message"
+        // Display the specific *generic* error message from the server action
+        // Server action returns a message like "English Message / German Message"
         const messages = result.message.split(' / ');
         const displayMessage = language === 'en' ? messages[0] : messages[1] || messages[0]; // Fallback to English if German is missing
 
         toast({
           title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
+          // Display the appropriate language part of the message
           description: displayMessage || (language === 'en' // Fallback just in case message format is unexpected
             ? 'Could not send your message. Please try again later.'
             : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'),
           variant: 'destructive',
         });
-        // Log the full server message to console for debugging if needed
+        // Log the GENERIC message received from the server to the BROWSER console.
+        // NOTE: For detailed SMTP errors, check the SERVER console logs where the Next.js app is running.
         console.error("Server Action Error:", result.message);
       }
     } catch (error) {
-      // Catch unexpected errors during the action call itself
+      // Catch unexpected errors during the action call itself (e.g., network issue calling the action)
       console.error("Unexpected error during form submission:", error);
       toast({
         title: language === 'en' ? 'Unexpected Error' : 'Unerwarteter Fehler',
@@ -236,7 +245,7 @@ export default function ContactPage() {
                    language === 'en' ? 'Sending...' : 'Sende...'
                 ) : (
                   <>
-                    <Send className="mr-2 h-4 w-4" /> {/* Added icon */}
+                    <Send className="mr-2 h-4 w-4" />
                     {language === 'en' ? 'Send Request' : 'Anfrage Senden'}
                   </>
                 )}

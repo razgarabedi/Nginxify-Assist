@@ -19,37 +19,49 @@ const ContactFormSchema = z.object({
 });
 type ContactFormData = z.infer<typeof ContactFormSchema>;
 
+// --- Configuration ---
 const smtpHost = process.env.SMTP_HOST;
 const smtpPort = process.env.SMTP_PORT;
 const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS; // Don't log this!
+const smtpPass = process.env.SMTP_PASS; // DO NOT LOG THIS PASSWORD
 
-// Check for essential SMTP environment variables during server startup or first call
+// --- Configuration Check ---
+// Logs a warning on the server if essential SMTP variables are missing.
 if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
     console.warn(
-        "WARNUNG: SMTP-Umgebungsvariablen (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS) sind nicht vollständig konfiguriert. " +
-        "Der E-Mail-Versand über das Kontaktformular wird wahrscheinlich fehlschlagen. " +
-        "Bitte stellen Sie sicher, dass diese in Ihrer .env.local-Datei oder Umgebung korrekt gesetzt sind."
+        "\n\n" +
+        "**************************************************************************************\n" +
+        "** WARNUNG: SMTP-UMGEBUNGSVARIABLEN UNVOLLSTÄNDIG!                                **\n" +
+        "**------------------------------------------------------------------------------------**\n" +
+        "** Mindestens eine der Variablen SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS ist       **\n" +
+        "** nicht in Ihrer .env.local-Datei oder Umgebungsvariablen gesetzt.                 **\n" +
+        "**                                                                                    **\n" +
+        "** Der E-Mail-Versand über das Kontaktformular wird wahrscheinlich fehlschlagen.       **\n" +
+        "**                                                                                    **\n" +
+        "** -> Überprüfen Sie Ihre `.env.local`-Datei im Projektstammverzeichnis.             **\n" +
+        "** -> Stellen Sie sicher, dass alle vier Variablen korrekt eingetragen sind.         **\n" +
+        "**************************************************************************************\n\n"
     );
 } else {
-    console.log("SERVER-INFO: SMTP-Konfiguration in Umgebungsvariablen gefunden. Nodemailer-Transporter wird konfiguriert.");
+    console.log("SERVER-INFO: SMTP-Konfigurationsvariablen (HOST, PORT, USER, PASS) in Umgebung gefunden. Nodemailer wird konfiguriert.");
 }
 
 // Configure the Nodemailer transporter using environment variables.
 const transporterOptions: SMTPTransport.Options = {
   host: smtpHost,
   port: parseInt(smtpPort || '587', 10), // Default to standard TLS port 587
-  // Use `secure: true` if your SMTP provider uses port 465 (SSL)
+  // `secure: true` für Port 465 (SSL), `secure: false` (mit STARTTLS) für Port 587.
   secure: parseInt(smtpPort || '587', 10) === 465,
   auth: {
-    // It's highly recommended to use dedicated app passwords or API keys
-    // rather than your primary email password.
+    // Es wird dringend empfohlen, App-Passwörter oder API-Schlüssel anstelle
+    // Ihres primären E-Mail-Passworts zu verwenden.
     user: smtpUser,
-    pass: smtpPass, // Use the password from env
+    pass: smtpPass, // Passwort aus der Umgebungsvariable
   },
-  // Optional: Add debugging for Nodemailer connection issues (Uncomment for detailed logs)
-  // logger: true,
-  // debug: true, // Set to true for very detailed SMTP logs
+  // --- DEBUGGING OPTIONEN (AUSKOMMENTIEREN ZUM AKTIVIEREN) ---
+  // logger: true, // Loggt allgemeine Nodemailer-Aktivitäten
+  // debug: true,  // Aktiviert sehr detaillierte SMTP-Kommunikationslogs
+  // --- ENDE DEBUGGING OPTIONEN ---
 };
 
 const transporter = nodemailer.createTransport(transporterOptions);
@@ -62,9 +74,8 @@ const transporter = nodemailer.createTransport(transporterOptions);
  */
 export async function sendContactEmail(data: ContactFormData): Promise<{ success: boolean; message: string }> {
   // Runtime check for essential configuration before attempting to send
-  // Moved outside the try block to fail fast if config is missing
   if (!smtpHost || !smtpUser || !smtpPass || !smtpPort) {
-      console.error("SERVER-FEHLER: E-Mail-Versand aufgrund unvollständiger SMTP-Konfiguration fehlgeschlagen. Überprüfen Sie die Umgebungsvariablen (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS).");
+      console.error("SERVER-FEHLER: E-Mail-Versand FEHLGESCHLAGEN. SMTP-Konfiguration unvollständig. Überprüfen Sie .env.local (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS).");
       // Do not expose internal configuration details to the client
       return { success: false, message: 'Server configuration error. Could not send email. / Fehler bei der Serverkonfiguration. E-Mail konnte nicht gesendet werden.' };
   }
@@ -77,7 +88,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
     const mailOptions = {
       from: `"Nginxify Assist Kontakt" <${smtpUser}>`, // Sender address (must be authenticated user)
       replyTo: validatedData.email, // Set reply-to to the submitter's email
-      to: 'hilfe@nginxify.com', // Recipient address - CONFIRMED
+      to: 'hilfe@nginxify.com', // <<<<< EMPFÄNGERADRESSE BESTÄTIGT >>>>>
       subject: `Neue Kontaktanfrage: ${validatedData.subject}`,
       text: `
         Neue Nachricht über das Kontaktformular erhalten:
@@ -107,25 +118,35 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
       `,
     };
 
-    console.log(`SERVER-INFO: Versuche E-Mail zu senden an ${mailOptions.to} von ${mailOptions.from}...`);
-    console.log(`SERVER-INFO: Verwende SMTP Host: ${smtpHost}, Port: ${smtpPort}, Secure: ${transporterOptions.secure}`); // Log config being used
+    console.log(`SERVER-INFO: Versuche E-Mail zu senden AN: ${mailOptions.to} VON: ${mailOptions.from} (Reply-To: ${mailOptions.replyTo})`);
+    console.log(`SERVER-INFO: Verwende SMTP Host: ${smtpHost}, Port: ${smtpPort}, Secure: ${transporterOptions.secure}, User: ${smtpUser}`); // Log config being used
 
-    // --- DEBUGGING TIP ---
-    // Uncomment the following block to verify the SMTP connection details
-    // *before* attempting to send the email. This helps isolate connection/auth issues.
+    // --- SMTP VERBINDUNGSTEST (AUSKOMMENTIEREN ZUM TESTEN) ---
+    // Dieser Block testet die Verbindung zum SMTP-Server und die Authentifizierung,
+    // *bevor* versucht wird, die eigentliche E-Mail zu senden. Nützlich zur Fehlersuche!
     /*
     try {
         await transporter.verify();
         console.log("SERVER-INFO: SMTP-Verbindung erfolgreich verifiziert. Konfiguration scheint korrekt.");
     } catch (verifyError) {
-        console.error("SERVER-FEHLER: SMTP-Verbindung konnte nicht verifiziert werden. Überprüfen Sie Host, Port, SSL/TLS-Einstellungen und Zugangsdaten.", verifyError);
-        // Provide a specific client message for verification failure
-        return { success: false, message: 'Connection to email server failed during verification. / Fehler bei der Verbindung zum E-Mail-Server während der Überprüfung.' };
+        console.error("--------------------------------------------------------------------------");
+        console.error("SERVER-FEHLER: SMTP-Verifizierung FEHLGESCHLAGEN!");
+        console.error("GRUND:", verifyError); // Loggt den spezifischen Fehler
+        console.error("MÖGLICHE URSACHEN:");
+        console.error("  - Falsche SMTP_HOST oder SMTP_PORT in .env.local?");
+        console.error("  - Falsche SMTP_USER oder SMTP_PASS in .env.local?");
+        console.error("  - Falsche SSL/TLS-Einstellung (secure: true/false basierend auf Port)?");
+        console.error("  - Firewall blockiert ausgehende Verbindung zum SMTP-Server?");
+        console.error("  - E-Mail-Anbieter erfordert App-Passwort oder spezielle Sicherheitseinstellungen?");
+        console.error("--------------------------------------------------------------------------");
+        // Spezifische Client-Nachricht für Verifizierungsfehler
+        return { success: false, message: 'Connection/Authentication test with email server failed. Check server logs for details. / Verbindungs-/Authentifizierungstest zum E-Mail-Server fehlgeschlagen. Server-Logs prüfen.' };
     }
     */
-    // --- END DEBUGGING TIP ---
+    // --- ENDE SMTP VERBINDUNGSTEST ---
 
 
+    // Send the email
     const info = await transporter.sendMail(mailOptions);
 
     console.log('SERVER-INFO: Kontakt-E-Mail erfolgreich gesendet! Nachrichten-ID:', info.messageId);
@@ -138,44 +159,56 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
       return { success: false, message: 'Invalid form data. Please check your input. / Ungültige Formulardaten. Bitte überprüfen Sie Ihre Eingaben.' };
     }
 
-    // Log the detailed error to the server console for debugging
-    console.error('SERVER-FEHLER: Fehler beim Senden der Kontakt-E-Mail. Fehlerdetails:', error);
+    // --- DETAILLIERTE FEHLERLOGGUNG AUF DEM SERVER ---
+    // Der folgende Block loggt detaillierte Informationen zum Fehler auf der Serverkonsole.
+    // DIES IST ENTSCHEIDEND FÜR DIE FEHLERSUCHE bei "Failed to send Email".
+    console.error("\n\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.error("!! SERVER-FEHLER: FEHLER BEIM SENDEN DER KONTAKT-E-MAIL                   !!");
+    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    console.error("** FEHLERDETAILS:                                                       **");
+    console.error(error); // Loggt das gesamte Fehlerobjekt
+    console.error("**----------------------------------------------------------------------**");
 
     let clientErrorMessage = 'Failed to send Email.'; // Default generic message (English)
     let clientErrorMessageDe = 'Fehler beim Senden der E-Mail.'; // Default generic message (German)
 
     // Check if it's a Nodemailer specific error for more context on the SERVER log
     if (error && typeof error === 'object' && 'code' in error) {
-      const code = (error as any).code;
+      const code = (error as any).code; // e.g., 'EAUTH', 'ECONNREFUSED'
       const command = (error as any).command; // e.g., 'AUTH', 'CONN'
       const response = (error as any).response; // SMTP server response text
       const responseCode = (error as any).responseCode; // SMTP response code (e.g., 535)
 
-      console.error(`SERVER-FEHLER: Nodemailer Fehler Code: ${code}, Befehl: ${command}, SMTP-Antwort-Code: ${responseCode}, SMTP-Antwort: ${response}`);
-
-       // Customize client message slightly based on common *general* categories, still avoiding specifics
+      console.error("** NODEMAILER FEHLER-INFO:                                              **");
+      console.error(`**   Code: ${code} | Befehl: ${command} | SMTP-Code: ${responseCode}`);
+      console.error(`**   SMTP-Antwort: ${response}`);
+      console.error("**                                                                      **");
+      console.error("** MÖGLICHE URSACHEN (siehe auch verify() Test oben):                   **");
       if (code === 'EAUTH') {
+           console.error("**   -> Authentifizierung fehlgeschlagen (falscher SMTP_USER/SMTP_PASS?) **");
+           console.error("**   -> Benötigt der Provider ein App-Passwort?                        **");
            clientErrorMessage = 'Authentication with the email server failed.';
            clientErrorMessageDe = 'Authentifizierung beim E-Mail-Server fehlgeschlagen.';
       } else if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND' || code === 'ECONNECTION') {
+          console.error("**   -> Verbindung zum SMTP-Server fehlgeschlagen (falscher HOST/PORT?) **");
+          console.error("**   -> Firewall blockiert die Verbindung?                            **");
           clientErrorMessage = 'Connection to the email server failed.';
           clientErrorMessageDe = 'Verbindung zum E-Mail-Server fehlgeschlagen.';
+      } else {
+          console.error("**   -> Anderer Nodemailer-Fehler - Details siehe oben.               **");
       }
-      // Potential future mappings:
-      // else if (code === 'EENVELOPE') { // Problem with sender/recipient addresses
-      //    clientErrorMessage = 'Problem with email addresses (sender or recipient).';
-      //    clientErrorMessageDe = 'Problem mit E-Mail-Adressen (Absender oder Empfänger).';
-      // }
-      // else if (code === 'EMESSAGE') { // Problem with the message format/size
-      //     clientErrorMessage = 'There was a problem formatting the email message.';
-      //     clientErrorMessageDe = 'Problem beim Formatieren der E-Mail-Nachricht.';
-      // }
-    } else {
-        console.error('SERVER-FEHLER: Ein unerwarteter Fehler ist beim E-Mail-Versand aufgetreten (kein spezifischer Nodemailer-Code).');
-    }
+       console.error("**   -> ÜBERPRÜFEN SIE DIE .env.local DATEI UND SERVER-LOGS!            **");
 
-    // Provide a (potentially more specific) generic error message to the client for security
-    // The message includes both English and German. The frontend should ideally pick the correct one based on context.
+    } else {
+        console.error('**   Ein unerwarteter Fehler ist aufgetreten (kein spezifischer Code). **');
+        console.error("**   -> ÜBERPRÜFEN SIE DIE SERVER-LOGS FÜR MEHR DETAILS!                **");
+    }
+    console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
+
+    // Provide a generic error message to the client for security.
+    // The detailed error is only in the server logs.
+    // The message includes both English and German. The frontend should pick the correct one.
     return { success: false, message: `${clientErrorMessage} / ${clientErrorMessageDe}` };
   }
 }
