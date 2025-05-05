@@ -56,18 +56,18 @@ export default function ContactPage() {
       message: '',
       technicalDetails: '',
     },
-    mode: 'onChange', // Validate on change for better UX
+    mode: 'onBlur', // Validate on blur instead of change to prevent initial errors
   });
 
   // Update schema and reset form validation when language changes
   useEffect(() => {
     const newSchema = getFormSchema(language);
     setFormSchema(newSchema);
-    // Update the resolver dynamically and re-validate
+    // Update the resolver dynamically
     // Use any type assertion temporarily if TS complains about resolver update method
     (form as any)._resolver = zodResolver(newSchema);
-    // Re-trigger validation to show new messages if errors exist
-    form.trigger();
+    // No need to trigger validation manually here, resolver handles it on interaction or submit
+    // form.trigger(); // Removed this line
 
   }, [language, form]);
 
@@ -76,7 +76,7 @@ export default function ContactPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true); // Set submitting state
     try {
-      // Re-validate explicitly before submitting
+      // Re-validate explicitly before submitting to catch any missed blur events
       const isValid = await form.trigger();
       if (!isValid) {
           toast({
@@ -88,9 +88,9 @@ export default function ContactPage() {
           return;
       }
 
-      console.log("SERVER-INFO: Sending data to server action:", values); // Log data being sent
+      console.log("CLIENT-INFO: Sending data to server action:", values); // Log data being sent
       const result = await sendContactEmail(values);
-      console.log("SERVER-INFO: Received result from server action:", result); // Log result
+      console.log("CLIENT-INFO: Received result from server action:", result); // Log result
 
       if (result.success) {
         toast({
@@ -109,8 +109,8 @@ export default function ContactPage() {
         toast({
           title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
           description: displayMessage || (language === 'en'
-            ? 'Could not send your message. Please try again later.'
-            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'),
+            ? 'Could not send your message. Please try again later or check server logs.' // Added hint
+            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder prüfen Sie die Server-Logs.'), // Added hint
           variant: 'destructive',
         });
         // Log the full server message to console for debugging if needed
@@ -131,28 +131,56 @@ export default function ContactPage() {
     }
   }
 
+  const translations = {
+    pageTitle: language === 'en' ? 'Contact Us' : 'Kontaktieren Sie Uns',
+    pageDescription: language === 'en'
+      ? 'Have a question or need IT support? Fill out the form or send us an email.'
+      : 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.',
+    formTitle: language === 'en' ? 'Inquiry Form' : 'Anfrageformular',
+    alertTitle: language === 'en' ? 'Important Information for Your Request' : 'Wichtige Informationen für Ihre Anfrage',
+    alertDescription: language === 'en'
+      ? 'To help us assist you best, please describe your problem in as much detail as possible. For technical issues, please also provide information about your device (e.g., operating system, model) if relevant.'
+      : 'Um Ihnen bestmöglich helfen zu können, beschreiben Sie Ihr Problem bitte so detailliert wie möglich. Geben Sie bei technischen Problemen bitte auch Informationen zu Ihrem Gerät (z.B. Betriebssystem, Modell) an, falls relevant.',
+    nameLabel: language === 'en' ? 'Name' : 'Name',
+    namePlaceholder: language === 'en' ? 'Your Name' : 'Ihr Name',
+    emailLabel: language === 'en' ? 'Email' : 'E-Mail',
+    emailPlaceholder: language === 'en' ? 'your@email.com' : 'ihre@email.de',
+    subjectLabel: language === 'en' ? 'Subject' : 'Betreff',
+    subjectPlaceholder: language === 'en' ? 'What is it about?' : 'Worum geht es?',
+    messageLabel: language === 'en' ? 'Your Message / Problem Description' : 'Ihre Nachricht / Problembeschreibung',
+    messagePlaceholder: language === 'en' ? 'Describe your concern...' : 'Beschreiben Sie Ihr Anliegen...',
+    messageDescription: language === 'en' ? 'The more detailed, the better we can help.' : 'Je detaillierter, desto besser können wir helfen.',
+    techDetailsLabel: language === 'en' ? 'Technical Details (Optional)' : 'Technische Details (Optional)',
+    techDetailsPlaceholder: language === 'en' ? 'e.g., Operating system, device model, software used...' : 'z.B. Betriebssystem, Gerätemodell, verwendete Software...',
+    techDetailsDescription: language === 'en' ? 'If relevant to your problem.' : 'Falls relevant für Ihr Problem.',
+    submitButton: language === 'en' ? 'Send Request' : 'Anfrage Senden',
+    submittingButton: language === 'en' ? 'Sending...' : 'Sende...',
+    directContactTitle: language === 'en' ? 'Direct Contact' : 'Direkter Kontakt',
+    emailInfoTitle: language === 'en' ? 'Email' : 'E-Mail',
+    emailInfoText: language === 'en' ? 'You can also email us directly:' : 'Sie können uns auch direkt eine E-Mail schreiben:',
+    emailInfoHint: language === 'en'
+      ? 'Please provide as many details as possible about your concern here as well.'
+      : 'Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.',
+  };
+
   return (
     <div className="space-y-10 md:space-y-12">
       <section className="text-center px-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{language === 'en' ? 'Contact Us' : 'Kontaktieren Sie Uns'}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
         <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto">
-          {language === 'en'
-            ? 'Have a question or need IT support? Fill out the form or send us an email.'
-            : 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.'}
+          {translations.pageDescription}
         </p>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 px-4 md:px-0">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 px-4 xl:px-0"> {/* Adjusted padding */}
         {/* Contact Form */}
         <div className="space-y-6 order-2 lg:order-1">
-           <h2 className="text-2xl font-semibold">{language === 'en' ? 'Inquiry Form' : 'Anfrageformular'}</h2>
+           <h2 className="text-2xl font-semibold">{translations.formTitle}</h2>
             <Alert>
               <Info className="h-4 w-4 mt-1" /> {/* Added mt-1 for alignment */}
-              <AlertTitle>{language === 'en' ? 'Important Information for Your Request' : 'Wichtige Informationen für Ihre Anfrage'}</AlertTitle>
+              <AlertTitle>{translations.alertTitle}</AlertTitle>
               <AlertDescription>
-                {language === 'en'
-                  ? 'To help us assist you best, please describe your problem in as much detail as possible. For technical issues, please also provide information about your device (e.g., operating system, model) if relevant.'
-                  : 'Um Ihnen bestmöglich helfen zu können, beschreiben Sie Ihr Problem bitte so detailliert wie möglich. Geben Sie bei technischen Problemen bitte auch Informationen zu Ihrem Gerät (z.B. Betriebssystem, Modell) an, falls relevant.'}
+                {translations.alertDescription}
               </AlertDescription>
             </Alert>
            <Form {...form}>
@@ -164,9 +192,9 @@ export default function ContactPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{language === 'en' ? 'Name' : 'Name'}</FormLabel>
+                      <FormLabel>{translations.nameLabel}</FormLabel>
                       <FormControl>
-                        <Input placeholder={language === 'en' ? 'Your Name' : 'Ihr Name'} {...field} />
+                        <Input placeholder={translations.namePlaceholder} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -177,9 +205,9 @@ export default function ContactPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{language === 'en' ? 'Email' : 'E-Mail'}</FormLabel>
+                      <FormLabel>{translations.emailLabel}</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder={language === 'en' ? 'your@email.com' : 'ihre@email.de'} {...field} />
+                        <Input type="email" placeholder={translations.emailPlaceholder} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -191,9 +219,9 @@ export default function ContactPage() {
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'en' ? 'Subject' : 'Betreff'}</FormLabel>
+                    <FormLabel>{translations.subjectLabel}</FormLabel>
                     <FormControl>
-                      <Input placeholder={language === 'en' ? 'What is it about?' : 'Worum geht es?'} {...field} />
+                      <Input placeholder={translations.subjectPlaceholder} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -204,16 +232,16 @@ export default function ContactPage() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'en' ? 'Your Message / Problem Description' : 'Ihre Nachricht / Problembeschreibung'}</FormLabel>
+                    <FormLabel>{translations.messageLabel}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={language === 'en' ? 'Describe your concern...' : 'Beschreiben Sie Ihr Anliegen...'}
+                        placeholder={translations.messagePlaceholder}
                         className="min-h-[120px]"
                         {...field}
                       />
                     </FormControl>
                      <FormDescription>
-                        {language === 'en' ? 'The more detailed, the better we can help.' : 'Je detaillierter, desto besser können wir helfen.'}
+                        {translations.messageDescription}
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -224,16 +252,16 @@ export default function ContactPage() {
                 name="technicalDetails"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{language === 'en' ? 'Technical Details (Optional)' : 'Technische Details (Optional)'}</FormLabel>
+                    <FormLabel>{translations.techDetailsLabel}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={language === 'en' ? 'e.g., Operating system, device model, software used...' : 'z.B. Betriebssystem, Gerätemodell, verwendete Software...'}
+                        placeholder={translations.techDetailsPlaceholder}
                         className="min-h-[80px]"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                        {language === 'en' ? 'If relevant to your problem.' : 'Falls relevant für Ihr Problem.'}
+                        {translations.techDetailsDescription}
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -243,12 +271,12 @@ export default function ContactPage() {
                 {isSubmitting ? (
                    <>
                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                     {language === 'en' ? 'Sending...' : 'Sende...'}
+                     {translations.submittingButton}
                    </>
                 ) : (
                   <>
                     <Send className="mr-2 h-4 w-4" />
-                    {language === 'en' ? 'Send Request' : 'Anfrage Senden'}
+                    {translations.submitButton}
                   </>
                 )}
               </Button>
@@ -258,23 +286,19 @@ export default function ContactPage() {
 
         {/* Contact Info */}
         <div className="space-y-6 order-1 lg:order-2">
-          <h2 className="text-2xl font-semibold">{language === 'en' ? 'Direct Contact' : 'Direkter Kontakt'}</h2>
+          <h2 className="text-2xl font-semibold">{translations.directContactTitle}</h2>
           <div className="flex items-start gap-4 p-4 border rounded-lg bg-card"> {/* Added card style */}
             <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-medium">{language === 'en' ? 'Email' : 'E-Mail'}</h3>
+              <h3 className="font-medium">{translations.emailInfoTitle}</h3>
               <p className="text-muted-foreground text-sm"> {/* Adjusted size */}
-                {language === 'en'
-                  ? 'You can also email us directly:'
-                  : 'Sie können uns auch direkt eine E-Mail schreiben:'}
+                {translations.emailInfoText}
               </p>
               <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all font-medium">
                 hilfe@nginxify.com
               </a>
                <p className="text-xs text-muted-foreground mt-2"> {/* Adjusted size */}
-                {language === 'en'
-                  ? 'Please provide as many details as possible about your concern here as well.'
-                  : 'Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.'}
+                {translations.emailInfoHint}
                </p>
             </div>
           </div>
