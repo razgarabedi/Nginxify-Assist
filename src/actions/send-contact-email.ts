@@ -32,7 +32,7 @@ if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
         "Bitte stellen Sie sicher, dass diese in Ihrer .env.local-Datei oder Umgebung korrekt gesetzt sind."
     );
 } else {
-    console.log("SMTP-Konfiguration in Umgebungsvariablen gefunden. Nodemailer-Transporter wird konfiguriert.");
+    console.log("SERVER-INFO: SMTP-Konfiguration in Umgebungsvariablen gefunden. Nodemailer-Transporter wird konfiguriert.");
 }
 
 // Configure the Nodemailer transporter using environment variables.
@@ -58,7 +58,7 @@ const transporter = nodemailer.createTransport(transporterOptions);
  * Sends the contact form data as an email.
  *
  * @param data The validated contact form data.
- * @returns A promise that resolves to an object indicating success or failure.
+ * @returns A promise that resolves to an object indicating success or failure, with a user-friendly message.
  */
 export async function sendContactEmail(data: ContactFormData): Promise<{ success: boolean; message: string }> {
   // Runtime check for essential configuration before attempting to send
@@ -66,7 +66,7 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
   if (!smtpHost || !smtpUser || !smtpPass || !smtpPort) {
       console.error("SERVER-FEHLER: E-Mail-Versand aufgrund unvollständiger SMTP-Konfiguration fehlgeschlagen. Überprüfen Sie die Umgebungsvariablen (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS).");
       // Do not expose internal configuration details to the client
-      return { success: false, message: 'Fehler bei der Serverkonfiguration. E-Mail konnte nicht gesendet werden.' };
+      return { success: false, message: 'Server configuration error. Could not send email. / Fehler bei der Serverkonfiguration. E-Mail konnte nicht gesendet werden.' };
   }
 
   try {
@@ -110,54 +110,72 @@ export async function sendContactEmail(data: ContactFormData): Promise<{ success
     console.log(`SERVER-INFO: Versuche E-Mail zu senden an ${mailOptions.to} von ${mailOptions.from}...`);
     console.log(`SERVER-INFO: Verwende SMTP Host: ${smtpHost}, Port: ${smtpPort}, Secure: ${transporterOptions.secure}`); // Log config being used
 
-    // Verify connection configuration (optional but helpful for debugging)
-    // try {
-    //     await transporter.verify();
-    //     console.log("SERVER-INFO: SMTP-Verbindung erfolgreich verifiziert.");
-    // } catch (verifyError) {
-    //     console.error("SERVER-FEHLER: SMTP-Verbindung konnte nicht verifiziert werden. Überprüfen Sie Host, Port, SSL/TLS-Einstellungen und Zugangsdaten.", verifyError);
-    //     return { success: false, message: 'Fehler bei der Verbindung zum E-Mail-Server.' };
-    // }
+    // --- DEBUGGING TIP ---
+    // Uncomment the following block to verify the SMTP connection details
+    // *before* attempting to send the email. This helps isolate connection/auth issues.
+    /*
+    try {
+        await transporter.verify();
+        console.log("SERVER-INFO: SMTP-Verbindung erfolgreich verifiziert. Konfiguration scheint korrekt.");
+    } catch (verifyError) {
+        console.error("SERVER-FEHLER: SMTP-Verbindung konnte nicht verifiziert werden. Überprüfen Sie Host, Port, SSL/TLS-Einstellungen und Zugangsdaten.", verifyError);
+        // Provide a specific client message for verification failure
+        return { success: false, message: 'Connection to email server failed during verification. / Fehler bei der Verbindung zum E-Mail-Server während der Überprüfung.' };
+    }
+    */
+    // --- END DEBUGGING TIP ---
 
 
     const info = await transporter.sendMail(mailOptions);
 
     console.log('SERVER-INFO: Kontakt-E-Mail erfolgreich gesendet! Nachrichten-ID:', info.messageId);
-    return { success: true, message: 'E-Mail erfolgreich gesendet!' }; // Success message for client
+    return { success: true, message: 'Email sent successfully! / E-Mail erfolgreich gesendet!' }; // Success message for client
 
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('SERVER-FEHLER: Formularvalidierung fehlgeschlagen:', error.errors);
       // Provide a generic validation error message
-      return { success: false, message: 'Ungültige Formulardaten. Bitte überprüfen Sie Ihre Eingaben.' };
+      return { success: false, message: 'Invalid form data. Please check your input. / Ungültige Formulardaten. Bitte überprüfen Sie Ihre Eingaben.' };
     }
 
     // Log the detailed error to the server console for debugging
     console.error('SERVER-FEHLER: Fehler beim Senden der Kontakt-E-Mail. Fehlerdetails:', error);
 
-    let clientErrorMessage = 'Failed to send Email.'; // Default generic message
+    let clientErrorMessage = 'Failed to send Email.'; // Default generic message (English)
+    let clientErrorMessageDe = 'Fehler beim Senden der E-Mail.'; // Default generic message (German)
 
     // Check if it's a Nodemailer specific error for more context on the SERVER log
     if (error && typeof error === 'object' && 'code' in error) {
       const code = (error as any).code;
-      const command = (error as any).command;
-      const response = (error as any).response; // SMTP server response
-      const responseCode = (error as any).responseCode;
+      const command = (error as any).command; // e.g., 'AUTH', 'CONN'
+      const response = (error as any).response; // SMTP server response text
+      const responseCode = (error as any).responseCode; // SMTP response code (e.g., 535)
+
       console.error(`SERVER-FEHLER: Nodemailer Fehler Code: ${code}, Befehl: ${command}, SMTP-Antwort-Code: ${responseCode}, SMTP-Antwort: ${response}`);
 
        // Customize client message slightly based on common *general* categories, still avoiding specifics
       if (code === 'EAUTH') {
-           clientErrorMessage = 'Authentifizierung beim E-Mail-Server fehlgeschlagen.';
-      } else if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND') {
-          clientErrorMessage = 'Verbindung zum E-Mail-Server fehlgeschlagen.';
+           clientErrorMessage = 'Authentication with the email server failed.';
+           clientErrorMessageDe = 'Authentifizierung beim E-Mail-Server fehlgeschlagen.';
+      } else if (code === 'ECONNREFUSED' || code === 'ETIMEDOUT' || code === 'ENOTFOUND' || code === 'ECONNECTION') {
+          clientErrorMessage = 'Connection to the email server failed.';
+          clientErrorMessageDe = 'Verbindung zum E-Mail-Server fehlgeschlagen.';
       }
-      // Consider adding more general mappings if needed, e.g., for recipient errors, etc.
+      // Potential future mappings:
+      // else if (code === 'EENVELOPE') { // Problem with sender/recipient addresses
+      //    clientErrorMessage = 'Problem with email addresses (sender or recipient).';
+      //    clientErrorMessageDe = 'Problem mit E-Mail-Adressen (Absender oder Empfänger).';
+      // }
+      // else if (code === 'EMESSAGE') { // Problem with the message format/size
+      //     clientErrorMessage = 'There was a problem formatting the email message.';
+      //     clientErrorMessageDe = 'Problem beim Formatieren der E-Mail-Nachricht.';
+      // }
     } else {
         console.error('SERVER-FEHLER: Ein unerwarteter Fehler ist beim E-Mail-Versand aufgetreten (kein spezifischer Nodemailer-Code).');
     }
 
-    // Provide a generic error message to the client for security
-    // The specific message "Failed to send Email." comes from this return if no specific client error message was set above.
-    return { success: false, message: clientErrorMessage };
+    // Provide a (potentially more specific) generic error message to the client for security
+    // The message includes both English and German. The frontend should ideally pick the correct one based on context.
+    return { success: false, message: `${clientErrorMessage} / ${clientErrorMessageDe}` };
   }
 }

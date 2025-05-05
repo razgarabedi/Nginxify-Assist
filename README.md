@@ -40,13 +40,15 @@ SMTP_PASS=your_smtp_password
 *   If deploying, configure these environment variables in your hosting provider's settings.
 *   Using app-specific passwords or API keys is generally more secure than using your primary email account password.
 
-**Troubleshooting "Failed to send Email" Error:**
-If you encounter the error "Error Sending Message. Failed to send Email." on the contact page, this indicates a problem occurred on the server while trying to send the email via SMTP.
-*   **Check Server Logs:** The detailed error message from the email server (Nodemailer) is **only visible in the server-side logs** (the console/terminal where your Next.js application is running, e.g., `npm run dev` output or `pm2 logs nginxify`). Check these logs for codes like `EAUTH` (authentication failed), `ECONNREFUSED` (connection refused), `ETIMEDOUT` (connection timed out), etc.
-*   **Verify `.env.local`:** Double-check that `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS` in your `.env.local` file are absolutely correct for your email provider.
-*   **App Passwords:** Some email providers (like Gmail) require you to generate and use an "App Password" instead of your regular account password for external applications.
-*   **Firewall/Network:** Ensure your server can reach the specified SMTP host and port. Firewalls might block outgoing connections.
-*   **SSL/TLS:** Ensure the `SMTP_PORT` and the corresponding `secure` setting in `src/actions/send-contact-email.ts` match your provider's requirements (Port 587 usually uses `secure: false` with STARTTLS, Port 465 uses `secure: true`).
+**Troubleshooting "Error Sending Message" on Contact Page:**
+If you encounter an error like "Error Sending Message" (followed by a more specific message like "Authentication with the email server failed" or "Connection to the email server failed") on the contact page, this indicates a problem occurred on the server while trying to send the email via SMTP.
+
+*   **Check Server Logs:** The detailed error message from the email server (Nodemailer), including SMTP codes, is **only visible in the server-side logs** (the console/terminal where your Next.js application is running, e.g., `npm run dev` output or `pm2 logs nginxify`). Look for codes like `EAUTH` (authentication failed), `ECONNREFUSED` (connection refused), `ETIMEDOUT` (connection timed out), etc. These logs provide the most precise information for debugging.
+*   **Verify `.env.local`:** Double-check that `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS` in your `.env.local` file are absolutely correct for your email provider. A typo here is a common cause of `EAUTH` errors.
+*   **App Passwords:** Some email providers (like Gmail/Google Workspace) require you to generate and use an "App Password" instead of your regular account password for external applications. Check your email provider's security settings.
+*   **Firewall/Network:** Ensure your server (or local machine if testing) can reach the specified `SMTP_HOST` and `SMTP_PORT`. Firewalls or network configurations might block outgoing connections, leading to `ECONNREFUSED` or `ETIMEDOUT`.
+*   **SSL/TLS Settings:** Ensure the `SMTP_PORT` and the corresponding `secure` setting in `src/actions/send-contact-email.ts` match your provider's requirements (Port 587 usually uses `secure: false` with STARTTLS, Port 465 uses `secure: true`). Incorrect settings can cause connection errors.
+*   **Debugging Tip:** You can uncomment the `transporter.verify()` block within `src/actions/send-contact-email.ts` to test the connection and authentication details *before* attempting to send an email. This can help isolate configuration issues.
 
 ## Deployment on Ubuntu with Nginx
 
@@ -96,12 +98,16 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-        # Optional: Improve caching for static assets (adjust path if needed)
-        # Nginx serves static files directly for better performance
+        # Serve static assets directly via Nginx for better performance
+        # Adjust the alias path to your project's actual build output location
         location /_next/static {
             alias /path/to/your/nextjs/app/.next/static;
             expires 30d;
             add_header Cache-Control "public";
+            # Ensure files are served with correct MIME types
+            include /etc/nginx/mime.types;
+            # Prevent access errors if files don't exist
+            try_files $uri =404;
         }
 
         # Optional: Deny access to internal Next.js server files (redundant with proxy but good practice)
@@ -110,7 +116,7 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
         # }
     }
     ```
-    *   Replace `/path/to/your/nextjs/app` with the actual path to the Next.js application.
+    *   Replace `/path/to/your/nextjs/app` with the actual path to the Next.js application directory.
     *   Ensure the `proxy_pass` directive points to the correct port your Next.js app runs on (default is 3000 when using `npm start`). Using `127.0.0.1` is often more reliable than `localhost`.
 
 4.  **Enable the site:**
@@ -118,7 +124,7 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
     ```bash
     sudo ln -s /etc/nginx/sites-available/nginxify /etc/nginx/sites-enabled/
     # Remove the default Nginx site if it conflicts
-    sudo rm /etc/nginx/sites-enabled/default
+    # sudo rm /etc/nginx/sites-enabled/default
     ```
 
 5.  **Test the Nginx configuration:**
@@ -128,28 +134,28 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
     ```
 
 6.  **Reload Nginx:**
+    If the test is successful, reload Nginx to apply the changes:
 
     ```bash
     sudo systemctl reload nginx
     ```
 
 7.  **Install PM2:**
-    PM2 is a process manager that helps keep your Node.js application running.
+    PM2 is a process manager that helps keep your Node.js application running reliably.
 
     ```bash
     sudo npm install -g pm2
     ```
 
 8.  **Run Next.js app with PM2:**
-    Navigate to your project directory and start the app:
+    Navigate to your project directory and start the production server:
 
     ```bash
     # Ensure environment variables are set for the PM2 process if not globally available
-    # PM2 will automatically load .env.local in the directory it's started from if `dotenv` is not used explicitly
-    # If variables are elsewhere, load them:
-    # export $(grep -v '^#' /path/to/.env.local | xargs) && pm2 start npm --name "nginxify" -- start
+    # PM2 will automatically load .env.local in the directory it's started from.
+    # If variables are elsewhere (e.g., /etc/environment), ensure they are loaded by the PM2 user's shell.
 
-    # Start the app using the 'start' script from package.json
+    # Start the app using the 'start' script from package.json (which runs `next start`)
     pm2 start npm --name "nginxify" -- start
     ```
 

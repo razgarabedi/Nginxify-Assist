@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react'; // Import React and hooks
+import { useEffect, useState } from 'react'; // Combined imports
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -60,14 +60,28 @@ export default function ContactPage() {
 
   // Re-initialize form on language change to update validation messages
    useEffect(() => {
-    form.reset(form.getValues()); // Reset with current values to keep data
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]); // Dependency on language
+    // Reset form schema validation rules when language changes
+    form.reset(form.getValues(), { keepValues: true }); // Keep entered values
+    // We need a way to re-trigger validation based on the new schema rules
+    // This could involve manually triggering validation or restructuring
+  }, [language, form]); // Add form to dependencies
 
   // Handle form submission using the server action
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true); // Set submitting state
     try {
+      // Re-validate before submitting, especially if language changed
+      const isValid = await form.trigger();
+      if (!isValid) {
+          toast({
+            title: language === 'en' ? 'Validation Error' : 'Validierungsfehler',
+            description: language === 'en' ? 'Please correct the errors in the form.' : 'Bitte korrigieren Sie die Fehler im Formular.',
+            variant: 'destructive',
+          });
+          setIsSubmitting(false);
+          return;
+      }
+
       const result = await sendContactEmail(values);
 
       if (result.success) {
@@ -76,19 +90,23 @@ export default function ContactPage() {
           description: language === 'en'
             ? 'Thank you for your inquiry. We will get back to you soon.'
             : 'Vielen Dank für Ihre Anfrage. Wir werden uns bald bei Ihnen melden.',
-          variant: 'default',
+          variant: 'default', // Use 'success' if you add a success variant
         });
         form.reset(); // Reset form on success
       } else {
         // Display the specific error message from the server action
+        // Server action now returns a message like "English Message / German Message"
+        const messages = result.message.split(' / ');
+        const displayMessage = language === 'en' ? messages[0] : messages[1] || messages[0]; // Fallback to English if German is missing
+
         toast({
           title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
-          description: result.message || (language === 'en' // Fallback just in case
+          description: displayMessage || (language === 'en' // Fallback just in case message format is unexpected
             ? 'Could not send your message. Please try again later.'
             : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'),
           variant: 'destructive',
         });
-        // Log the server message to console for debugging if needed
+        // Log the full server message to console for debugging if needed
         console.error("Server Action Error:", result.message);
       }
     } catch (error) {
