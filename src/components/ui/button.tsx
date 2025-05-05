@@ -42,22 +42,38 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
-// Explicitly handle children prop
+// Explicitly handle children prop based on asChild
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+    const buttonClassName = cn(buttonVariants({ variant, size, className }));
+
+    if (asChild) {
+      // When asChild is true, render Slot and pass children explicitly.
+      // Ensure only valid React element is passed as children to Slot.
+      // React.Children.only will throw if children is not a single element.
+      return (
+        <Slot
+          className={buttonClassName}
+          ref={ref}
+          {...props} // Spread the rest of the props onto Slot
+        >
+           {children}
+        </Slot>
+      );
+    }
+
+    // When asChild is false, render a standard button element.
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+      <button
+        className={buttonClassName}
         ref={ref}
-        {...props}
+        {...props} // Spread the rest of the props onto the button
       >
         {children}
-      </Comp>
+      </button>
     );
   }
 );
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-
