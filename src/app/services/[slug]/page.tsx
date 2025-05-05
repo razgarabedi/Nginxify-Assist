@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react'; // Ensure React is imported
+import React, { useEffect, useState, use } from 'react'; // Ensure React and 'use' hook are imported
 import { useParams, notFound } from 'next/navigation'; // Import useParams
 import { useLanguage } from '@/context/language-context';
 import { allServices, type Service } from '@/lib/services-data';
@@ -9,15 +9,19 @@ import Image from "next/image";
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
-// Remove params from props type, as we'll use the hook
+// Interface for props is not strictly needed when using useParams hook
 // interface ServiceDetailPageProps {
 //   params: { slug: string };
 // }
 
-export default function ServiceDetailPage(/* Remove params from props */) {
-  const params = useParams<{ slug: string }>(); // Use the hook to get params
-  const { slug } = params; // Destructure slug from the hook's return value
+export default function ServiceDetailPage() {
+  // Use the `use` hook to get params in Client Components
+  const params = useParams<{ slug: string }>();
+  // Using `use(params)` is not the standard way. `params` is already available.
+  const { slug } = params; // Direct access is fine after useParams
+
   const { language } = useLanguage();
   const [service, setService] = useState<Service | null | undefined>(undefined); // Initial state undefined for loading
 
@@ -30,18 +34,27 @@ export default function ServiceDetailPage(/* Remove params from props */) {
   // Handle loading state
   if (service === undefined) {
     return (
-      <div className="space-y-6 md:space-y-8">
-         {/* Skeleton Loading State */}
-         <div className="animate-pulse">
-           <div className="h-8 bg-muted rounded w-1/4 mb-4"></div>
-           <div className="h-10 bg-muted rounded w-3/4 mb-6"></div>
-           <div className="relative h-64 sm:h-80 md:h-96 w-full bg-muted rounded-lg mb-6"></div>
-           <div className="space-y-3">
-             <div className="h-4 bg-muted rounded w-full"></div>
-             <div className="h-4 bg-muted rounded w-5/6"></div>
-             <div className="h-4 bg-muted rounded w-full"></div>
-             <div className="h-4 bg-muted rounded w-4/5"></div>
-           </div>
+      <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Added padding */}
+         {/* Back Button Skeleton */}
+         <Skeleton className="h-10 w-36 mb-4" />
+         {/* Title Skeleton */}
+         <div className="flex items-center gap-3">
+             <Skeleton className="h-8 w-8 rounded-full" />
+             <Skeleton className="h-10 w-3/4" />
+         </div>
+         {/* Image Skeleton */}
+         <Skeleton className="w-full aspect-video rounded-lg mb-6" />
+         {/* Description Skeleton */}
+         <div className="space-y-3">
+             <Skeleton className="h-4 w-full" />
+             <Skeleton className="h-4 w-full" />
+             <Skeleton className="h-4 w-5/6" />
+             <Skeleton className="h-4 w-full" />
+             <Skeleton className="h-4 w-4/5" />
+         </div>
+          {/* CTA Button Skeleton */}
+         <div className="pt-6 border-t mt-8">
+            <Skeleton className="h-11 w-full sm:w-48" />
          </div>
       </div>
     );
@@ -61,7 +74,7 @@ export default function ServiceDetailPage(/* Remove params from props */) {
   };
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Added padding */}
       {/* Back Button */}
       <Button variant="outline" asChild className="mb-4">
         <Link href="/services">
@@ -72,27 +85,27 @@ export default function ServiceDetailPage(/* Remove params from props */) {
 
       {/* Service Title */}
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-3">
-         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary' })} {title}
+         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary flex-shrink-0' })} {/* Added flex-shrink-0 */}
+         {title}
       </h1>
 
-      {/* Service Image */}
-       <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden rounded-lg shadow-md">
+      {/* Service Image - Use aspect-ratio */}
+       <div className="relative w-full aspect-video overflow-hidden rounded-lg shadow-md">
          <Image
            src={service.imageUrl}
            alt={title}
            fill
-           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw" // Simplify sizes for detail view
+           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Adjusted sizes for responsiveness
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint}
            priority // Prioritize image loading on detail pages
-           unoptimized // Keep if using external URLs like Unsplash/picsum
+           // unoptimized // Keep if using external URLs like Unsplash/picsum - removed as placeholder URLs were replaced
          />
        </div>
 
       {/* Detailed Description */}
-      {/* Use dangerouslySetInnerHTML for the HTML content from the data file */}
        <div
-         className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none dark:prose-invert space-y-4 text-foreground" // Ensure text color contrasts
+         className="prose prose-sm sm:prose md:prose-base lg:prose-lg xl:prose-xl max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground space-y-4 prose-a:text-primary hover:prose-a:underline" // Ensure links are styled correctly
          dangerouslySetInnerHTML={{ __html: detailedDescription }}
        />
 
@@ -107,24 +120,9 @@ export default function ServiceDetailPage(/* Remove params from props */) {
   );
 }
 
-// Optional: If using dynamic routes often, consider generating static paths
-// export async function generateStaticParams() {
-//   // Make sure allServices is available here if uncommenting
-//   return allServices.map((service) => ({
-//     slug: service.slug,
-//   }));
-// }
+// Removed generateStaticParams as it cannot be exported from a 'use client' component.
+// Static generation for these routes can be handled via configuration if needed,
+// but dynamic rendering is the default and often suitable for client components.
 
-// Optional: Add generateMetadata if needed for SEO
-// export async function generateMetadata({ params }: { params: { slug: string } }) {
-//   const service = allServices.find(s => s.slug === params.slug);
-//   if (!service) {
-//     return { title: 'Service Not Found' };
-//   }
-//   // You might want to fetch language dynamically or decide on a default
-//   const title = service.titleDe; // Or titleEn based on logic
-//   return {
-//     title: `${title} | Nginxify Assist`,
-//     description: service.descriptionDe, // Or descriptionEn
-//   };
-// }
+// Removed generateMetadata as it cannot be exported from a 'use client' component.
+// Metadata should be handled in a parent layout or potentially via client-side updates if needed.
