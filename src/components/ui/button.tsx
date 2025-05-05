@@ -41,16 +41,13 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, children, ...props }, ref) => { // Explicitly destructure children
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props} // Spread remaining props
-        // Explicitly pass children; necessary for Slot to work correctly
-        // even if children might be included in props spread.
-        children={children}
+        {...props} // Spread all props, including children. Slot handles this.
       />
     )
   }
