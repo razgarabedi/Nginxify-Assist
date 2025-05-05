@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, User, Code, ShieldCheck, MonitorSmartphone } from 'lucide-react';
+import { Users, User, Code, ShieldCheck, MonitorSmartphone, LifeBuoy } from 'lucide-react'; // Added LifeBuoy import
 import Image from "next/image";
 
 export default function ServicesPage() {
