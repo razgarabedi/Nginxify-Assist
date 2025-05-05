@@ -18,7 +18,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        accent: "bg-accent text-accent-foreground hover:bg-accent/90", // Added accent variant
+        accent: "bg-accent text-accent-foreground hover:bg-accent/90",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -40,16 +40,20 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
-// Ensure children are passed correctly when using asChild by explicitly placing them
+// Explicitly destructure `children` to prevent it from being passed down twice via spread
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => { // Children are included in ...props
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...props} // Spread all props, including children. Slot will handle its child correctly.
-      /> // No explicit {children} here, as Slot handles it via props spread
+        {...props} // Pass remaining props. If asChild is true, Slot handles merging props and passing down children.
+                   // If asChild is false, 'button' receives props and children.
+      >
+        {/* Conditionally render children only if Comp is 'button'. Slot handles children implicitly. */}
+        {asChild ? children : props.children ?? children}
+      </Comp>
     );
   }
 );
