@@ -18,27 +18,29 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useLanguage } from '@/context/language-context'; // Import useLanguage hook
 
-
-// Define Zod schema for form validation
-const formSchema = z.object({
+// Define Zod schema for form validation (with dynamic messages)
+const getFormSchema = (language: 'de' | 'en') => z.object({
   name: z.string().min(2, {
-    message: 'Name muss mindestens 2 Zeichen lang sein.',
+    message: language === 'en' ? 'Name must be at least 2 characters long.' : 'Name muss mindestens 2 Zeichen lang sein.',
   }),
   email: z.string().email({
-    message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+    message: language === 'en' ? 'Please enter a valid email address.' : 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
   }),
   subject: z.string().min(5, {
-    message: 'Betreff muss mindestens 5 Zeichen lang sein.',
+    message: language === 'en' ? 'Subject must be at least 5 characters long.' : 'Betreff muss mindestens 5 Zeichen lang sein.',
   }),
   message: z.string().min(10, {
-    message: 'Nachricht muss mindestens 10 Zeichen lang sein.',
+    message: language === 'en' ? 'Message must be at least 10 characters long.' : 'Nachricht muss mindestens 10 Zeichen lang sein.',
   }),
   technicalDetails: z.string().optional(), // Optional field for technical details
 });
 
 export default function ContactPage() {
+  const { language } = useLanguage(); // Use context
   const { toast } = useToast();
+  const formSchema = getFormSchema(language); // Get schema based on language
 
   // Initialize react-hook-form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,6 +54,13 @@ export default function ContactPage() {
     },
   });
 
+   // Re-initialize form on language change to update validation messages
+  React.useEffect(() => {
+    form.reset(form.getValues()); // Reset with current values to keep data
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]); // Dependency on language
+
+
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // TODO: Implement actual form submission logic (e.g., send email, save to DB)
@@ -61,8 +70,10 @@ export default function ContactPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     toast({
-      title: 'Nachricht gesendet!',
-      description: 'Vielen Dank für Ihre Anfrage. Wir werden uns bald bei Ihnen melden.',
+      title: language === 'en' ? 'Message Sent!' : 'Nachricht gesendet!',
+      description: language === 'en'
+        ? 'Thank you for your inquiry. We will get back to you soon.'
+        : 'Vielen Dank für Ihre Anfrage. Wir werden uns bald bei Ihnen melden.',
       variant: 'default', // Use 'default' which maps to green accent via CSS variables
     });
 
@@ -73,21 +84,25 @@ export default function ContactPage() {
   return (
     <div className="space-y-12">
       <section className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight mb-4">Kontaktieren Sie Uns</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-4">{language === 'en' ? 'Contact Us' : 'Kontaktieren Sie Uns'}</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.
+          {language === 'en'
+            ? 'Have a question or need IT support? Fill out the form or send us an email.'
+            : 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.'}
         </p>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Contact Form */}
         <div className="space-y-6">
-           <h2 className="text-2xl font-semibold">Anfrageformular</h2>
+           <h2 className="text-2xl font-semibold">{language === 'en' ? 'Inquiry Form' : 'Anfrageformular'}</h2>
             <Alert>
               <Info className="h-4 w-4" />
-              <AlertTitle>Wichtige Informationen für Ihre Anfrage</AlertTitle>
+              <AlertTitle>{language === 'en' ? 'Important Information for Your Request' : 'Wichtige Informationen für Ihre Anfrage'}</AlertTitle>
               <AlertDescription>
-                Um Ihnen bestmöglich helfen zu können, beschreiben Sie Ihr Problem bitte so detailliert wie möglich. Geben Sie bei technischen Problemen bitte auch Informationen zu Ihrem Gerät (z.B. Betriebssystem, Modell) an, falls relevant.
+                {language === 'en'
+                  ? 'To help us assist you best, please describe your problem in as much detail as possible. For technical issues, please also provide information about your device (e.g., operating system, model) if relevant.'
+                  : 'Um Ihnen bestmöglich helfen zu können, beschreiben Sie Ihr Problem bitte so detailliert wie möglich. Geben Sie bei technischen Problemen bitte auch Informationen zu Ihrem Gerät (z.B. Betriebssystem, Modell) an, falls relevant.'}
               </AlertDescription>
             </Alert>
            <Form {...form}>
@@ -98,9 +113,9 @@ export default function ContactPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>{language === 'en' ? 'Name' : 'Name'}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ihr Name" {...field} />
+                        <Input placeholder={language === 'en' ? 'Your Name' : 'Ihr Name'} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -111,9 +126,9 @@ export default function ContactPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>E-Mail</FormLabel>
+                      <FormLabel>{language === 'en' ? 'Email' : 'E-Mail'}</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="ihre@email.de" {...field} />
+                        <Input type="email" placeholder={language === 'en' ? 'your@email.com' : 'ihre@email.de'} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -125,9 +140,9 @@ export default function ContactPage() {
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Betreff</FormLabel>
+                    <FormLabel>{language === 'en' ? 'Subject' : 'Betreff'}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Worum geht es?" {...field} />
+                      <Input placeholder={language === 'en' ? 'What is it about?' : 'Worum geht es?'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -138,16 +153,16 @@ export default function ContactPage() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ihre Nachricht / Problembeschreibung</FormLabel>
+                    <FormLabel>{language === 'en' ? 'Your Message / Problem Description' : 'Ihre Nachricht / Problembeschreibung'}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Beschreiben Sie Ihr Anliegen..."
+                        placeholder={language === 'en' ? 'Describe your concern...' : 'Beschreiben Sie Ihr Anliegen...'}
                         className="min-h-[120px]"
                         {...field}
                       />
                     </FormControl>
                      <FormDescription>
-                        Je detaillierter, desto besser können wir helfen.
+                        {language === 'en' ? 'The more detailed, the better we can help.' : 'Je detaillierter, desto besser können wir helfen.'}
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -158,23 +173,25 @@ export default function ContactPage() {
                 name="technicalDetails"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Technische Details (Optional)</FormLabel>
+                    <FormLabel>{language === 'en' ? 'Technical Details (Optional)' : 'Technische Details (Optional)'}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="z.B. Betriebssystem, Gerätemodell, verwendete Software..."
+                        placeholder={language === 'en' ? 'e.g., Operating system, device model, software used...' : 'z.B. Betriebssystem, Gerätemodell, verwendete Software...'}
                         className="min-h-[80px]"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                        Falls relevant für Ihr Problem.
+                        {language === 'en' ? 'If relevant to your problem.' : 'Falls relevant für Ihr Problem.'}
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button type="submit" disabled={form.formState.isSubmitting} className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                {form.formState.isSubmitting ? 'Sende...' : 'Anfrage Senden'}
+                {form.formState.isSubmitting
+                  ? (language === 'en' ? 'Sending...' : 'Sende...')
+                  : (language === 'en' ? 'Send Request' : 'Anfrage Senden')}
               </Button>
             </form>
           </Form>
@@ -182,19 +199,23 @@ export default function ContactPage() {
 
         {/* Contact Info */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Direkter Kontakt</h2>
+          <h2 className="text-2xl font-semibold">{language === 'en' ? 'Direct Contact' : 'Direkter Kontakt'}</h2>
           <div className="flex items-start gap-4">
             <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-medium">E-Mail</h3>
+              <h3 className="font-medium">{language === 'en' ? 'Email' : 'E-Mail'}</h3>
               <p className="text-muted-foreground">
-                Sie können uns auch direkt eine E-Mail schreiben:
+                {language === 'en'
+                  ? 'You can also email us directly:'
+                  : 'Sie können uns auch direkt eine E-Mail schreiben:'}
               </p>
               <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all">
                 hilfe@nginxify.com
               </a>
                <p className="text-sm text-muted-foreground mt-2">
-                Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.
+                {language === 'en'
+                  ? 'Please provide as many details as possible about your concern here as well.'
+                  : 'Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.'}
                </p>
             </div>
           </div>

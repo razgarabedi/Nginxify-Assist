@@ -17,11 +17,9 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    unoptimized: true, // Allow unoptimized images for external URLs like picsum
   },
-   i18n: {
-    locales: ['de', 'en'],
-    defaultLocale: 'de',
-  },
+   // Removed i18n configuration as it's handled by context now
 };
 
 export default nextConfig;

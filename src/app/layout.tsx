@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
+import { LanguageProvider } from '@/context/language-context'; // Import the provider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Nginxify Assist',
-  description: 'Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen',
+  description: 'Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen', // Keep primary description German or make dynamic later if needed
 };
 
 export default function RootLayout({
@@ -26,14 +27,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de">
+    <html lang="de"> {/* Consider making lang dynamic based on context if needed */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
-        <Footer />
-        <Toaster />
+        <LanguageProvider> {/* Wrap with LanguageProvider */}
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8">{children}</main>
+          <Footer />
+          <Toaster />
+        </LanguageProvider>
       </body>
     </html>
   );

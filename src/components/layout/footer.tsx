@@ -1,16 +1,22 @@
+'use client'; // Make it a client component
+
 import Link from 'next/link';
+import { useLanguage } from '@/context/language-context'; // Import useLanguage hook
 
 export default function Footer() {
+  const { language } = useLanguage(); // Use context
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="bg-secondary py-6 mt-12 border-t">
       <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
-        <p>&copy; {currentYear} Nginxify Assist. Alle Rechte vorbehalten.</p>
+        <p>
+          &copy; {currentYear} Nginxify Assist. {language === 'en' ? 'All rights reserved.' : 'Alle Rechte vorbehalten.'}
+        </p>
         {/* Optional Links */}
         {/* <div className="mt-2 space-x-4">
-          <Link href="/imprint" className="hover:text-primary">Impressum</Link>
-          <Link href="/privacy" className="hover:text-primary">Datenschutz</Link>
+          <Link href="/imprint" className="hover:text-primary">{language === 'en' ? 'Imprint' : 'Impressum'}</Link>
+          <Link href="/privacy" className="hover:text-primary">{language === 'en' ? 'Privacy Policy' : 'Datenschutz'}</Link>
         </div> */}
       </div>
     </footer>

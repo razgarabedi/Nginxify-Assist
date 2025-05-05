@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Globe, LifeBuoy } from 'lucide-react'; // Added LifeBuoy import
+import { Menu, Globe, LifeBuoy } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/language-context'; // Import useLanguage hook
 
 const navigationItems = [
   { href: '/', label: 'Startseite', labelEn: 'Home' },
@@ -27,7 +28,7 @@ const navigationItems = [
 export default function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [language, setLanguage] = useState('de'); // 'de' or 'en'
+  const { language, setLanguage } = useLanguage(); // Use context
 
   const getLabel = (item: (typeof navigationItems)[0]) => {
     return language === 'en' ? item.labelEn : item.label;
@@ -61,6 +62,7 @@ export default function Header() {
       <div className="container flex h-14 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <LifeBuoy className="h-6 w-6 text-primary" />
+          {/* Title is not translated here, assuming brand name */}
           <span className="font-bold">Nginxify Assist</span>
         </Link>
 
@@ -77,11 +79,11 @@ export default function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Menü öffnen</span>
+                <span className="sr-only">{language === 'en' ? 'Open menu' : 'Menü öffnen'}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <Link href="/" className="flex items-center space-x-2 mb-6">
+              <Link href="/" className="flex items-center space-x-2 mb-6" onClick={() => setIsMobileMenuOpen(false)}>
                  <LifeBuoy className="h-6 w-6 text-primary" />
                  <span className="font-bold">Nginxify Assist</span>
               </Link>
@@ -95,13 +97,13 @@ export default function Header() {
 }
 
 
-const LanguageSwitcher = ({ language, setLanguage }: { language: string; setLanguage: (lang: string) => void }) => {
+const LanguageSwitcher = ({ language, setLanguage }: { language: 'de' | 'en'; setLanguage: (lang: 'de' | 'en') => void }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon">
           <Globe className="h-5 w-5" />
-          <span className="sr-only">Sprache wechseln</span>
+          <span className="sr-only">{language === 'en' ? 'Change language' : 'Sprache wechseln'}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
