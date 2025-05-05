@@ -21,7 +21,7 @@ export const allServices: Service[] = [
   {
     slug: 'website-creation-basic',
     category: 'club',
-    icon: <Code className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <Code className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Website-Erstellung (Basis)',
     titleEn: 'Website Creation (Basic)',
     descriptionDe: 'Hilfe bei der Einrichtung einfacher Webseiten zur Vorstellung Ihres Vereins.',
@@ -46,13 +46,13 @@ export const allServices: Service[] = [
       </ul>
       <strong>Note:</strong> We do not create complex designs or program custom features. The focus is on a simple, functional presence.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwZGV2ZWxvcG1lbnQlMjBjb2RlfGVufDB8fHx8MTcyMzE4MzM5Mnww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "website development code",
+    imageUrl: "https://images.unsplash.com/photo-1547658719-da2b51169166?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwZGVzaWdufGVufDB8fHx8MTcyMzcwMzM2N3ww&ixlib=rb-4.0.3&q=80&w=1080",
+    imageHint: "website design",
   },
   {
     slug: 'online-tools-setup',
     category: 'club',
-    icon: <MonitorSmartphone className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <MonitorSmartphone className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Einrichtung von Online-Tools',
     titleEn: 'Setting up Online Tools',
     descriptionDe: 'Unterstützung bei Auswahl und Einrichtung von Tools für Kommunikation oder Organisation.',
@@ -75,13 +75,13 @@ export const allServices: Service[] = [
       </ul>
       <strong>Note:</strong> We do not offer comprehensive training or deep integrations into existing systems.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1551887390-3a10a527cc7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjb2xsYWJvcmF0aW9uJTIwdG9vbHMlMjBkaWdpdGFsfGVufDB8fHx8MTcyMzE4MzQyMHww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "collaboration tools digital",
+    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwdG9vbHMlMjBjb2xsYWJvcmF0aW9ufGVufDB8fHx8MTcyMzcwMzQxMnww&ixlib=rb-4.0.3&q=80&w=1080", // Changed image
+    imageHint: "digital tools collaboration dashboard", // Updated hint
   },
   {
     slug: 'it-security-consultation',
     category: 'club',
-    icon: <ShieldCheck className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <ShieldCheck className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'IT-Sicherheitsberatung',
     titleEn: 'IT Security Consultation',
     descriptionDe: 'Grundlegende Tipps und Hinweise zur Verbesserung der IT-Sicherheit Ihrer Organisation.',
@@ -108,13 +108,13 @@ export const allServices: Service[] = [
       </ul>
       <strong>Note:</strong> We do not conduct security audits and assume no liability. These are general recommendations.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1599673911018-8f7f6ade7628?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjeWJlciUyMHNlY3VyaXR5JTIwc2hpZWxkfGVufDB8fHx8MTcyMzE4MzQ0M3ww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "cyber security shield",
+    imageUrl: "https://images.unsplash.com/photo-1563206767-5b18f218e8de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjeWJlcnNlY3VyaXR5JTIwbG9ja3xlbnwwfHx8fDE3MjM3MDM0NDV8MA&ixlib=rb-4.0.3&q=80&w=1080", // Changed image
+    imageHint: "cybersecurity lock", // Updated hint
   },
   {
     slug: 'general-it-questions-club',
     category: 'club',
-    icon: <LifeBuoy className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <LifeBuoy className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Allgemeine IT-Fragen (Verein)',
     titleEn: 'General IT Questions (Club)',
     descriptionDe: 'Beratung und Hilfe bei allgemeinen technischen Fragen im Rahmen unserer Kapazitäten.',
@@ -139,14 +139,14 @@ export const allServices: Service[] = [
       We try to help you within the scope of our knowledge and volunteer time or refer you to appropriate resources.
       <strong>Note:</strong> Help is limited to basic questions.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxzdXBwb3J0JTIwaGVscGRlc2slMjBoZWFkc2V0fGVufDB8fHx8MTcyMzE4MzQ2NHww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "support helpdesk headset",
+    imageUrl: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxpdCUyMHN1cHBvcnQlMjBtZWV0aW5nfGVufDB8fHx8MTcyMzcwMzQ3NXww&ixlib=rb-4.0.3&q=80&w=1080",
+    imageHint: "it support meeting",
   },
   // For Individuals
   {
     slug: 'computer-smartphone-help',
     category: 'individual',
-    icon: <MonitorSmartphone className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <MonitorSmartphone className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Computer- & Smartphone-Hilfe',
     titleEn: 'Computer & Smartphone Help',
     descriptionDe: 'Unterstützung bei einfachen Problemen mit PC, Laptop oder Smartphone.',
@@ -171,13 +171,13 @@ export const allServices: Service[] = [
       </ul>
       <strong>Note:</strong> We do not perform hardware repairs and cannot solve complex software problems. For serious issues, we recommend professional help.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1614036013316-36dee6c6df1e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMGhlbHAlMjBzdXBwb3J0fGVufDB8fHx8MTcyMzE4MzQ5Mnww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "computer help support",
+    imageUrl: "https://images.unsplash.com/photo-1496171367470-9ed9a91ea931?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjb21wdXRlciUyMHNtYXJ0cGhvbmUlMjBoZWxwfGVufDB8fHx8MTcyMzcwMzUwMnww&ixlib=rb-4.0.3&q=80&w=1080", // Changed image
+    imageHint: "computer smartphone help desk", // Updated hint
   },
   {
     slug: 'online-security-tips',
     category: 'individual',
-    icon: <ShieldCheck className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <ShieldCheck className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Online-Sicherheitstipps',
     titleEn: 'Online Security Tips',
     descriptionDe: 'Beratung zu sicherem Surfen, Passwörtern und Schutz vor Online-Bedrohungen.',
@@ -204,13 +204,13 @@ export const allServices: Service[] = [
       </ul>
       <strong>Note:</strong> This is general advice and does not replace professional security analysis or virus removal.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1562813733-b31f71025d54?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBzYWZldHklMjBpbnRlcm5ldCUyMHNlY3VyaXR5fGVufDB8fHx8MTcyMzE4MzUxOHww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "online safety internet security",
+    imageUrl: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxvbmxpbmUlMjBzZWN1cml0eSUyMHBhc3N3b3JkfGVufDB8fHx8MTcyMzcwMzUzMHww&ixlib=rb-4.0.3&q=80&w=1080",
+    imageHint: "online security password",
   },
   {
     slug: 'website-understanding',
     category: 'individual',
-    icon: <Code className="text-accent h-5 w-5 md:h-6 md:w-6" />, // Re-using Code icon
+    icon: <Code className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Webseiten-Verständnis',
     titleEn: 'Website Understanding',
     descriptionDe: 'Erklärung grundlegender Funktionen von Webseiten oder Online-Diensten.',
@@ -235,13 +235,13 @@ export const allServices: Service[] = [
       </ul>
       <strong>Note:</strong> We cannot explain specific content or terms and conditions of websites. The focus is on general operation.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxsZWFybmluZyUyMHdlYnNpdGUlMjBicm93c2VyfGVufDB8fHx8MTcyMzE4MzU0MHww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "learning website browser",
+    imageUrl: "https://images.unsplash.com/photo-1522199755839-a2bacb67c546?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx1c2luZyUyMHdlYnNpdGUlMjBsYXB0b3B8ZW58MHx8fHwxNzIzNzAzNTUxfDA&ixlib=rb-4.0.3&q=80&w=1080",
+    imageHint: "using website laptop",
   },
   {
     slug: 'general-tech-questions-individual',
     category: 'individual',
-    icon: <LifeBuoy className="text-accent h-5 w-5 md:h-6 md:w-6" />,
+    icon: <LifeBuoy className="text-primary h-5 w-5 md:h-6 md:w-6" />, // Changed color to primary
     titleDe: 'Allgemeine Technikfragen (Privat)',
     titleEn: 'General Tech Questions (Individual)',
     descriptionDe: 'Hilfestellung bei einfachen technischen Fragen im Alltag.',
@@ -266,7 +266,7 @@ export const allServices: Service[] = [
       </ul>
       We try to explain simple technical concepts understandably or help you with basic operational questions, as far as our volunteer possibilities allow.
     `,
-    imageUrl: "https://images.unsplash.com/photo-1580894742597-87bc8789db3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxxdWVzdGlvbiUyMG1hcmslMjB0ZWNobm9sb2d5fGVufDB8fHx8MTcyMzE4MzU2MXww&ixlib=rb-4.0.3&q=80&w=1080", // Unsplash image
-    imageHint: "question mark technology",
+    imageUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxxdWVzdGlvbiUyMGFib3V0JTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3MjM3MDM1NzV8MA&ixlib=rb-4.0.3&q=80&w=1080", // Corrected URL
+    imageHint: "question about technology computer", // Corrected hint
   },
 ];
