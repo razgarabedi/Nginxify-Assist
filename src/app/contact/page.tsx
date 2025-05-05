@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react'; // Import React and hooks
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -44,7 +44,7 @@ export default function ContactPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
   const formSchema = getFormSchema(language);
-  const [isSubmitting, setIsSubmitting] = React.useState(false); // State for submission status
+  const [isSubmitting, setIsSubmitting] = useState(false); // State for submission status
 
   // Initialize react-hook-form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -59,9 +59,10 @@ export default function ContactPage() {
   });
 
   // Re-initialize form on language change to update validation messages
-  React.useEffect(() => {
+   useEffect(() => {
     form.reset(form.getValues()); // Reset with current values to keep data
-  }, [language, form]); // Dependency on language and form
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]); // Dependency on language
 
   // Handle form submission using the server action
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -79,14 +80,16 @@ export default function ContactPage() {
         });
         form.reset(); // Reset form on success
       } else {
-        // Display a more specific error if available, otherwise generic
+        // Display the specific error message from the server action
         toast({
           title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
-          description: result.message || (language === 'en'
-            ? 'Could not send your message. Please try again later or contact us directly.'
-            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns direkt.'),
+          description: result.message || (language === 'en' // Fallback just in case
+            ? 'Could not send your message. Please try again later.'
+            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'),
           variant: 'destructive',
         });
+        // Log the server message to console for debugging if needed
+        console.error("Server Action Error:", result.message);
       }
     } catch (error) {
       // Catch unexpected errors during the action call itself
