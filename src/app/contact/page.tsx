@@ -18,10 +18,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Info, Send, Loader2 } from 'lucide-react'; // Added Loader2
+import { Mail, Info, Send, Loader2, Phone } from 'lucide-react'; // Added Loader2, Phone
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from '@/context/language-context';
 import { sendContactEmail } from '@/actions/send-contact-email';
+import React from 'react'; // Import React
 
 // Define Zod schema for form validation (with dynamic messages)
 const getFormSchema = (language: 'de' | 'en') => z.object({
@@ -56,20 +57,21 @@ export default function ContactPage() {
       message: '',
       technicalDetails: '',
     },
-    mode: 'onBlur', // Validate on blur instead of change to prevent initial errors
+    mode: 'onBlur', // Validate on blur
   });
 
-  // Update schema and reset form validation when language changes
-  useEffect(() => {
+   // Re-initialize form on language change to update validation messages
+   React.useEffect(() => {
     const newSchema = getFormSchema(language);
     setFormSchema(newSchema);
-    // Update the resolver dynamically
-    // Use any type assertion temporarily if TS complains about resolver update method
+    // Reset form validation state and apply new resolver
+    // Use 'any' temporarily if needed to update _resolver
     (form as any)._resolver = zodResolver(newSchema);
-    // No need to trigger validation manually here, resolver handles it on interaction or submit
-    // form.trigger(); // Removed this line
-
-  }, [language, form]);
+    // Re-validate fields based on the new language rules if they have been touched
+    Object.keys(form.formState.touchedFields).forEach(fieldName => {
+        form.trigger(fieldName as keyof z.infer<typeof formSchema>);
+    });
+   }, [language, form]);
 
 
   // Handle form submission using the server action
@@ -161,23 +163,26 @@ export default function ContactPage() {
     emailInfoHint: language === 'en'
       ? 'Please provide as many details as possible about your concern here as well.'
       : 'Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.',
+    phoneInfoTitle: language === 'en' ? 'Phone' : 'Telefon', // Added Phone
+    phoneInfoText: language === 'en' ? 'Reach us during business hours:' : 'Erreichen Sie uns während der Geschäftszeiten:', // Added Phone
+    phoneInfoNumber: '+49 123 456789', // Added Example Phone number
   };
 
   return (
-    <div className="space-y-10 md:space-y-12">
+    <div className="space-y-10 md:space-y-12 lg:space-y-16"> {/* Increased spacing */}
       <section className="text-center px-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
-        <p className="text-base md:text-lg text-muted-foreground max-w-xl md:max-w-2xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1> {/* Responsive font size */}
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto"> {/* Responsive font size & max-width */}
           {translations.pageDescription}
         </p>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 px-4 xl:px-0"> {/* Adjusted padding */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16 px-4 xl:px-0"> {/* Adjusted padding and gap */}
         {/* Contact Form */}
         <div className="space-y-6 order-2 lg:order-1">
            <h2 className="text-2xl font-semibold">{translations.formTitle}</h2>
             <Alert>
-              <Info className="h-4 w-4 mt-1" /> {/* Added mt-1 for alignment */}
+              <Info className="h-4 w-4 mt-1 flex-shrink-0" /> {/* Ensure icon doesn't shrink */}
               <AlertTitle>{translations.alertTitle}</AlertTitle>
               <AlertDescription>
                 {translations.alertDescription}
@@ -186,7 +191,7 @@ export default function ContactPage() {
            <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Use grid for name/email on medium screens and up */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"> {/* Adjusted gap */}
                 <FormField
                   control={form.control}
                   name="name"
@@ -303,16 +308,15 @@ export default function ContactPage() {
             </div>
           </div>
            {/* Optional: Add other contact methods like phone if applicable */}
-           {/* Example:
+           {/* Example: */}
            <div className="flex items-start gap-4 p-4 border rounded-lg bg-card">
              <Phone className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
              <div>
-               <h3 className="font-medium">{language === 'en' ? 'Phone' : 'Telefon'}</h3>
-               <p className="text-muted-foreground text-sm"> Reach us during business hours:</p>
-               <a href="tel:+49123456789" className="text-primary hover:underline font-medium"> +49 123 456789</a>
+               <h3 className="font-medium">{translations.phoneInfoTitle}</h3>
+               <p className="text-muted-foreground text-sm"> {translations.phoneInfoText}</p>
+               <a href={`tel:${translations.phoneInfoNumber.replace(/\s/g, '')}`} className="text-primary hover:underline font-medium"> {translations.phoneInfoNumber}</a>
              </div>
            </div>
-           */}
         </div>
       </section>
     </div>

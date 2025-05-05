@@ -89,10 +89,10 @@ export default function ServicesPage() {
 
 
   return (
-    <div className="space-y-10 md:space-y-12">
+    <div className="space-y-10 md:space-y-12 lg:space-y-16"> {/* Increased spacing */}
       <section className="text-center px-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{language === 'en' ? 'Our Services' : 'Unsere Leistungen'}</h1>
-        <p className="text-base md:text-lg text-muted-foreground max-w-2xl md:max-w-3xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{language === 'en' ? 'Our Services' : 'Unsere Leistungen'}</h1> {/* Responsive font size */}
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto"> {/* Responsive font size & max-width */}
           {language === 'en'
             ? 'We offer volunteer IT support for non-profit organizations and individuals. Our focus is on basic help and advice.'
             : 'Wir bieten ehrenamtliche IT-Unterstützung für gemeinnützige Organisationen und Privatpersonen. Unser Fokus liegt auf grundlegender Hilfe und Beratung.'}
@@ -104,12 +104,12 @@ export default function ServicesPage() {
           <Users className="text-primary h-6 w-6 md:h-7 md:w-7" />
           {language === 'en' ? 'For Clubs & Organizations' : 'Für Vereine & Organisationen'}
         </h2>
-        <p className="text-muted-foreground px-4 md:px-0">
+        <p className="text-muted-foreground px-4 md:px-0 text-base sm:text-lg"> {/* Responsive text size */}
           {language === 'en'
             ? 'We support non-profit clubs and organizations in building their digital presence and overcoming basic IT challenges. Please note that we cannot take on complex, professional large-scale projects.'
             : 'Wir unterstützen gemeinnützige Vereine und Organisationen dabei, ihre digitale Präsenz aufzubauen und grundlegende IT-Herausforderungen zu meistern. Bitte beachten Sie, dass wir keine komplexen, professionellen Großprojekte übernehmen können.'}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 lg:gap-10"> {/* Added lg gap */}
           {clubServices.map((service, index) => (
             <ServiceCard
               key={service.title}
@@ -129,12 +129,12 @@ export default function ServicesPage() {
           <User className="text-primary h-6 w-6 md:h-7 md:w-7" />
           {language === 'en' ? 'For Individuals' : 'Für Privatpersonen'}
         </h2>
-        <p className="text-muted-foreground px-4 md:px-0">
+        <p className="text-muted-foreground px-4 md:px-0 text-base sm:text-lg"> {/* Responsive text size */}
           {language === 'en'
             ? 'We help you with everyday IT problems and questions about computers, smartphones, and the internet.'
             : 'Wir helfen Ihnen bei alltäglichen IT-Problemen und Fragen rund um Computer, Smartphone und Internet.'}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 lg:gap-10"> {/* Added lg gap */}
           {individualServices.map((service, index) => (
              <ServiceCard
               key={service.title}
@@ -164,7 +164,7 @@ interface ServiceCardProps {
 function ServiceCard({ icon, title, description, imageUrl, imageHint, priority = false }: ServiceCardProps) {
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-       <div className="relative h-48 sm:h-40 w-full"> {/* Adjusted height */}
+       <div className="relative h-48 sm:h-52 lg:h-60 w-full"> {/* Adjusted height for different screen sizes */}
          <Image
           src={imageUrl}
           alt={title}
@@ -176,13 +176,13 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint, priority =
           unoptimized // Keep for picsum
         />
       </div>
-      <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-2 pt-4"> {/* Adjusted padding & gap */}
+      <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-2 pt-4 px-4 sm:px-6"> {/* Adjusted padding */}
         <div className="flex-shrink-0 pt-0.5">{icon}</div>
         <div className="flex-grow">
           <CardTitle className="text-lg md:text-xl">{title}</CardTitle> {/* Adjusted title size */}
         </div>
       </CardHeader>
-      <CardContent className="flex-grow pt-0"> {/* Removed top padding */}
+      <CardContent className="flex-grow pt-0 px-4 sm:px-6 pb-4 sm:pb-6"> {/* Adjusted padding */}
         <CardDescription>{description}</CardDescription>
       </CardContent>
     </Card>

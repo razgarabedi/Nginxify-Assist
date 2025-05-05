@@ -2,7 +2,7 @@
 'use client'; // Make it a client component
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Handshake, MessageSquare, Clock } from 'lucide-react';
+import { Heart, Handshake, MessageSquare, Clock, Users, Gift } from 'lucide-react'; // Added Gift, Users
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from '@/context/language-context'; // Import useLanguage hook
@@ -51,15 +51,15 @@ export default function HowItWorksPage() {
   };
 
   return (
-    <div className="space-y-10 md:space-y-12">
+    <div className="space-y-10 md:space-y-12 lg:space-y-16"> {/* Increased spacing */}
       <section className="text-center px-4">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
-        <p className="text-base md:text-lg text-muted-foreground max-w-2xl md:max-w-3xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1> {/* Responsive font size */}
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto"> {/* Responsive font size & max-width */}
           {translations.pageDescription}
         </p>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10"> {/* Adjusted grid and gap */}
         <InfoCard
           icon={<Heart className="text-primary h-6 w-6" />}
           title={translations.volunteerTitle}
@@ -89,24 +89,23 @@ export default function HowItWorksPage() {
           description={translations.expectationDescription}
         />
          <InfoCard
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-primary"><path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm0 8.625a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25ZM15.375 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0ZM7.5 10.875a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25Z" clipRule="evenodd" /></svg>}
+          icon={<Users className="text-primary h-6 w-6" />} // Replaced SVG with Lucide icon
           title={translations.whoTitle}
           description={translations.whoDescription}
         />
          <InfoCard
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-primary"><path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v1.286a.75.75 0 0 0 .719.745 8.203 8.203 0 0 1 1.71.688 9.679 9.679 0 0 0 1.71-.688.75.75 0 0 0 .719-.745V4.262a.75.75 0 0 0-.5-.707ZM11.25 6.261v1.161A.75.75 0 0 0 12 8.168a.75.75 0 0 0 .75-.746V6.261a.75.75 0 0 0-.5-.707A9.707 9.707 0 0 0 12 5.504a9.707 9.707 0 0 0-.25.05Zm.75 4.365a.75.75 0 0 0-1.5 0v6.151a3.03 3.03 0 0 0 1.5 0v-6.151ZM13.5 3.555A9.735 9.735 0 0 1 18 3a9.707 9.707 0 0 1 3.25.533.75.75 0 0 1 .5.707v1.286a.75.75 0 0 1-.719.745 8.203 8.203 0 0 0-1.71.688 9.679 9.679 0 0 1-1.71-.688.75.75 0 0 1-.719-.745V4.262a.75.75 0 0 1 .5-.707Z" /></svg>}
+          icon={<Gift className="text-primary h-6 w-6" />} // Replaced SVG with Lucide icon
           title={translations.donationsTitle}
           description={translations.donationsDescription}
         />
       </section>
 
-       <section className="text-center py-10 bg-secondary rounded-lg shadow-md mt-10 md:mt-12 px-4">
+       <section className="text-center py-10 md:py-12 lg:py-16 bg-secondary rounded-lg shadow-md mt-10 md:mt-12 px-4"> {/* Adjusted padding */}
          <h2 className="text-xl md:text-2xl font-semibold mb-4">{translations.ctaTitle}</h2>
-         <p className="text-muted-foreground mb-6 max-w-md md:max-w-xl mx-auto">
+         <p className="text-muted-foreground mb-6 max-w-md md:max-w-xl lg:max-w-2xl mx-auto"> {/* Adjusted max-width */}
            {translations.ctaDescription}
          </p>
-         <Button asChild size="lg" variant="default" className="bg-primary hover:bg-primary/90">
-            {/* Remove Fragment wrapper */}
+         <Button asChild size="lg" variant="default" className="bg-primary hover:bg-primary/90 w-full sm:w-auto"> {/* Make button full width on small screens */}
            <Link href="/contact">{translations.ctaButton}</Link>
          </Button>
        </section>
@@ -123,11 +122,11 @@ interface InfoCardProps {
 function InfoCard({ icon, title, description }: InfoCardProps) {
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
-      <CardHeader className="items-center text-center pb-3 pt-6"> {/* Adjusted padding */}
+      <CardHeader className="items-center text-center pb-3 pt-6 px-4 sm:px-6"> {/* Adjusted padding */}
         <div className="mb-3 rounded-full bg-primary/10 p-3 inline-flex">{icon}</div>
         <CardTitle className="text-lg md:text-xl">{title}</CardTitle> {/* Adjusted title size */}
       </CardHeader>
-      <CardContent className="text-center text-muted-foreground flex-grow pb-6"> {/* Added bottom padding */}
+      <CardContent className="text-center text-muted-foreground flex-grow px-4 sm:px-6 pb-6"> {/* Adjusted padding */}
         {description}
       </CardContent>
     </Card>

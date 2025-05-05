@@ -9,8 +9,8 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-secondary py-4 md:py-6 mt-10 md:mt-12 border-t"> {/* Adjusted padding */}
-      <div className="container mx-auto px-4 text-center text-muted-foreground text-xs md:text-sm"> {/* Adjusted text size */}
+    <footer className="bg-secondary py-4 md:py-6 mt-10 md:mt-12 lg:mt-16 border-t"> {/* Adjusted margin and padding */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-muted-foreground text-xs sm:text-sm"> {/* Responsive padding and text size */}
         <p>
           &copy; {currentYear} Nginxify Assist. {language === 'en' ? 'All rights reserved.' : 'Alle Rechte vorbehalten.'}
         </p>
