@@ -40,6 +40,14 @@ SMTP_PASS=your_smtp_password
 *   If deploying, configure these environment variables in your hosting provider's settings.
 *   Using app-specific passwords or API keys is generally more secure than using your primary email account password.
 
+**Troubleshooting "Failed to send Email" Error:**
+If you encounter the error "Error Sending Message. Failed to send Email." on the contact page, this indicates a problem occurred on the server while trying to send the email via SMTP.
+*   **Check Server Logs:** The detailed error message from the email server (Nodemailer) is **only visible in the server-side logs** (the console/terminal where your Next.js application is running, e.g., `npm run dev` output or `pm2 logs nginxify`). Check these logs for codes like `EAUTH` (authentication failed), `ECONNREFUSED` (connection refused), `ETIMEDOUT` (connection timed out), etc.
+*   **Verify `.env.local`:** Double-check that `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, and `SMTP_PASS` in your `.env.local` file are absolutely correct for your email provider.
+*   **App Passwords:** Some email providers (like Gmail) require you to generate and use an "App Password" instead of your regular account password for external applications.
+*   **Firewall/Network:** Ensure your server can reach the specified SMTP host and port. Firewalls might block outgoing connections.
+*   **SSL/TLS:** Ensure the `SMTP_PORT` and the corresponding `secure` setting in `src/actions/send-contact-email.ts` match your provider's requirements (Port 587 usually uses `secure: false` with STARTTLS, Port 465 uses `secure: true`).
+
 ## Deployment on Ubuntu with Nginx
 
 This section outlines the steps to deploy this NextJS application on an Ubuntu server using Nginx as a reverse proxy.
@@ -49,7 +57,7 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
 *   An Ubuntu server with root or sudo access.
 *   Node.js and npm/yarn installed.
 *   Nginx installed.
-*   The necessary environment variables (like SMTP settings) configured on the server.
+*   The necessary environment variables (like SMTP settings in `.env.local` or system environment) configured on the server.
 
 **Steps:**
 
@@ -77,7 +85,7 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
 
         location / {
             # Reverse proxy requests to the running Next.js app (default port 3000)
-            proxy_pass http://localhost:3000;
+            proxy_pass http://127.0.0.1:3000; # Use 127.0.0.1 instead of localhost for reliability
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection 'upgrade';
@@ -89,20 +97,21 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
         }
 
         # Optional: Improve caching for static assets (adjust path if needed)
+        # Nginx serves static files directly for better performance
         location /_next/static {
             alias /path/to/your/nextjs/app/.next/static;
             expires 30d;
             add_header Cache-Control "public";
         }
 
-        # Optional: Deny access to internal Next.js server files
-        location ~ ^/\.next/(server|static|webpack)/ {
-            deny all;
-        }
+        # Optional: Deny access to internal Next.js server files (redundant with proxy but good practice)
+        # location ~ ^/\.next/(server|static|webpack)/ {
+        #     deny all;
+        # }
     }
     ```
     *   Replace `/path/to/your/nextjs/app` with the actual path to the Next.js application.
-    *   Ensure the `proxy_pass` directive points to the correct port your Next.js app runs on (default is 3000 when using `npm start`).
+    *   Ensure the `proxy_pass` directive points to the correct port your Next.js app runs on (default is 3000 when using `npm start`). Using `127.0.0.1` is often more reliable than `localhost`.
 
 4.  **Enable the site:**
 
@@ -136,11 +145,9 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
 
     ```bash
     # Ensure environment variables are set for the PM2 process if not globally available
-    # Example (if variables are in .env.local and you use dotenv):
-    # npm install dotenv --save-dev (if not already installed)
-    # Modify your package.json start script: "start": "node -r dotenv/config node_modules/next/dist/bin/next start"
-    # Or load variables directly:
-    # export $(grep -v '^#' .env.local | xargs) && pm2 start npm --name "nginxify" -- start
+    # PM2 will automatically load .env.local in the directory it's started from if `dotenv` is not used explicitly
+    # If variables are elsewhere, load them:
+    # export $(grep -v '^#' /path/to/.env.local | xargs) && pm2 start npm --name "nginxify" -- start
 
     # Start the app using the 'start' script from package.json
     pm2 start npm --name "nginxify" -- start
@@ -154,4 +161,4 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
     pm2 save
     ```
 
-Now your Next.js application should be running behind the Nginx reverse proxy, managed by PM2. Access it via your server's IP address or configured domain name.
+Now your Next.js application should be running behind the Nginx reverse proxy, managed by PM2. Access it via your server's IP address or configured domain name. Use `pm2 logs nginxify` to view server logs, especially for debugging email sending issues.
