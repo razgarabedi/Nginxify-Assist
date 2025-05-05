@@ -2,10 +2,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react'; // Import ReactNode
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle, SheetClose
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet'; // Added SheetClose
 import { Menu, Globe, LifeBuoy } from 'lucide-react';
 import {
   DropdownMenu,
@@ -42,27 +42,38 @@ export default function Header() {
         isMobile ? 'flex-col space-y-4 pt-4' : 'items-center' // Increased space-y for mobile
       )}
     >
-      {navigationItems.map((item) => (
-         <SheetClose asChild key={item.href} disabled={!isMobile}>
-           <Link
-              href={item.href}
-              onClick={() => isMobile && setIsMobileMenuOpen(false)}
-              className={cn(
-                'text-sm font-medium transition-colors hover:text-primary',
-                pathname === item.href ? 'text-primary font-semibold' : 'text-muted-foreground', // Highlight active link better
-                isMobile ? 'text-base py-2 px-4 rounded-md hover:bg-accent' : '' // Style mobile links
-              )}
-            >
-              {getLabel(item)}
-            </Link>
-         </SheetClose>
-      ))}
+      {navigationItems.map((item) => {
+        const linkElement = (
+          <Link
+            key={`${item.href}-${language}`} // Add language to key for potential re-renders on language change
+            href={item.href}
+            onClick={() => isMobile && setIsMobileMenuOpen(false)}
+            className={cn(
+              'text-sm font-medium transition-colors hover:text-primary',
+              pathname === item.href ? 'text-primary font-semibold' : 'text-muted-foreground', // Highlight active link better
+              isMobile ? 'block text-base py-2 px-4 rounded-md hover:bg-accent' : '' // Style mobile links differently, ensure it's block
+            )}
+          >
+            {getLabel(item)}
+          </Link>
+        );
+
+        // Only wrap with SheetClose if it's the mobile menu
+        return isMobile ? (
+          <SheetClose asChild key={item.href}>
+            {linkElement}
+          </SheetClose>
+        ) : (
+          linkElement // Render Link directly for desktop
+        );
+      })}
     </nav>
   );
 
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4 md:px-6"> {/* Increased height slightly and added horizontal padding */}
+      <div className="container flex h-14 items-center px-4 md:px-6"> {/* Reduced height slightly */}
         <Link href="/" className="mr-4 md:mr-6 flex items-center space-x-2"> {/* Adjusted margin */}
           <LifeBuoy className="h-6 w-6 text-primary" />
           {/* Title is not translated here, assuming brand name */}
@@ -85,8 +96,8 @@ export default function Header() {
                 <span className="sr-only">{language === 'en' ? 'Open menu' : 'Menü öffnen'}</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[320px]"> {/* Set width */}
-               <SheetHeader className="border-b pb-4 mb-4">
+            <SheetContent side="right" className="w-[280px] sm:w-[320px] flex flex-col pt-0"> {/* Set width and flex */}
+               <SheetHeader className="border-b pb-3 pt-4 mb-4"> {/* Adjust padding */}
                   <SheetTitle>
                      <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
                        <LifeBuoy className="h-6 w-6 text-primary" />
@@ -94,7 +105,9 @@ export default function Header() {
                     </Link>
                  </SheetTitle>
               </SheetHeader>
-              <NavLinks isMobile={true} />
+              <div className="flex-grow overflow-y-auto"> {/* Allow content to scroll if needed */}
+                <NavLinks isMobile={true} />
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -132,3 +145,4 @@ const LanguageSwitcher = ({ language, setLanguage }: { language: 'de' | 'en'; se
     </DropdownMenu>
   );
 };
+
