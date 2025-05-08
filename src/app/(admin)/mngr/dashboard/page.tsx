@@ -73,7 +73,7 @@ const getInitialServicesPageData = (): ServicesPageData => ({
 });
 
 // This will be for display structure, text comes from servicesItemsContent
-const getInitialEditableServices = (): ServiceDefinition[] => JSON.parse(JSON.stringify(serviceDefinitions));
+const getInitialDisplayServices = (): ServiceDefinition[] => JSON.parse(JSON.stringify(serviceDefinitions));
 
 const getInitialHowItWorksData = (): HowItWorksContentData => ({
   pageTitle_de: 'So Funktioniert\'s',
@@ -173,15 +173,13 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Content states for each page, initialized with fallbacks
   const [homeContent, setHomeContent] = useState<HomeContentData>(getInitialHomeData);
   const [servicesPageContent, setServicesPageContent] = useState<ServicesPageData>(getInitialServicesPageData);
   const [servicesItemsContent, setServicesItemsContent] = useState<Record<string, ServiceItemContentData>>({});
   const [howItWorksContent, setHowItWorksContent] = useState<HowItWorksContentData>(getInitialHowItWorksData);
   const [contactContent, setContactContent] = useState<ContactContentData>(getInitialContactData);
   
-  // For display of service structure (slug, icon, category) - not directly editable text
-  const [displayServices, setDisplayServices] = useState<ServiceDefinition[]>(getInitialEditableServices);
+  const [displayServices, setDisplayServices] = useState<ServiceDefinition[]>(getInitialDisplayServices);
 
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
   const [isLoadingContent, setIsLoadingContent] = useState(true);
@@ -192,35 +190,37 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthenticated, authIsLoading, router]);
 
-  // Load content from JSON file on mount
   useEffect(() => {
     async function loadPageContent() {
-      if (isAuthenticated) { // Only load if authenticated
+      if (isAuthenticated) {
         setIsLoadingContent(true);
         try {
           const data = await getContent();
+          
           setHomeContent(data.home || getInitialHomeData());
           setServicesPageContent(data.servicesPage || getInitialServicesPageData());
-          setServicesItemsContent(data.servicesItems || {}); // Initialize even if empty
           setHowItWorksContent(data.howItWorks || getInitialHowItWorksData());
           setContactContent(data.contact || getInitialContactData());
 
-          // Update displayServices to match loaded servicesItemsContent order/keys
-          const loadedSlugs = Object.keys(data.servicesItems || {});
-          const newDisplayServices = serviceDefinitions.filter(sd => loadedSlugs.includes(sd.slug))
-            .sort((a,b) => loadedSlugs.indexOf(a.slug) - loadedSlugs.indexOf(b.slug));
-          // Add any missing services from definitions
+          const finalServicesItemsContent: Record<string, ServiceItemContentData> = {};
+          const finalDisplayServices: ServiceDefinition[] = [];
+
           serviceDefinitions.forEach(sd => {
-            if(!newDisplayServices.find(ds => ds.slug === sd.slug)) {
-              newDisplayServices.push(sd);
-              // Ensure servicesItemsContent has an entry for newly added services from definitions
-              if (!(data.servicesItems && data.servicesItems[sd.slug])) {
-                const { icon, slug, category, ...textContent } = sd;
-                setServicesItemsContent(prev => ({...prev, [slug]: textContent}));
-              }
+            const { icon, slug: serviceSlug, category, ...defaultTextContent } = sd;
+            
+            if (data.servicesItems && data.servicesItems[serviceSlug]) {
+              finalServicesItemsContent[serviceSlug] = {
+                ...defaultTextContent, 
+                ...data.servicesItems[serviceSlug]
+              };
+            } else {
+              finalServicesItemsContent[serviceSlug] = defaultTextContent;
             }
+            finalDisplayServices.push(sd);
           });
-          setDisplayServices(newDisplayServices);
+
+          setServicesItemsContent(finalServicesItemsContent);
+          setDisplayServices(finalDisplayServices);
 
         } catch (error) {
           console.error('Failed to load content:', error);
@@ -229,18 +229,18 @@ export default function AdminDashboardPage() {
             description: 'Could not load website content. Using defaults.',
             variant: 'destructive',
           });
-          // Fallback to initial if error
           setHomeContent(getInitialHomeData());
           setServicesPageContent(getInitialServicesPageData());
-          setServicesItemsContent(
-            serviceDefinitions.reduce((acc, s) => {
-              const { icon, slug, category, ...textContent } = s;
-              acc[slug] = textContent;
-              return acc;
-            }, {} as Record<string, ServiceItemContentData>)
-          );
           setHowItWorksContent(getInitialHowItWorksData());
           setContactContent(getInitialContactData());
+          
+          const fallbackServicesItems: Record<string, ServiceItemContentData> = {};
+          serviceDefinitions.forEach(s => {
+            const { icon, slug, category, ...textContent } = s;
+            fallbackServicesItems[slug] = textContent;
+          });
+          setServicesItemsContent(fallbackServicesItems);
+          setDisplayServices(getInitialDisplayServices());
         } finally {
           setIsLoadingContent(false);
         }
@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
     field: string, 
     value: string, 
     lang?: 'de' | 'en', 
-    serviceSlug?: string, // Use slug instead of index
+    serviceSlug?: string,
     serviceField?: keyof ServiceItemContentData
   ) => {
     switch (pageKey) {
@@ -270,11 +270,11 @@ export default function AdminDashboardPage() {
           setServicesItemsContent(prev => ({
             ...prev,
             [serviceSlug]: {
-              ...(prev[serviceSlug] || {}), // Ensure serviceSlug entry exists
-              [field + (lang ? `_${lang}` : '')]: value // For bilingual fields like titleDe, titleEn
+              ...(prev[serviceSlug] || {}),
+              [field + (lang ? `_${lang}` : '')]: value 
             }
           }));
-        } else if (serviceSlug && !lang && serviceField === 'imageHint') { // For single language fields like imageHint
+        } else if (serviceSlug && !lang && serviceField === 'imageHint') { 
            setServicesItemsContent(prev => ({
             ...prev,
             [serviceSlug]: {
@@ -319,15 +319,14 @@ export default function AdminDashboardPage() {
     setIsSaving(prev => ({ ...prev, AllContent: false }));
   };
   
-  // Adjusted renderFormField to work with specific content types and service slugs
   const renderBilingualField = (
     pageKey: 'home' | 'servicesPage' | 'howItWorks' | 'contact' | 'servicesItems',
-    fieldName: string, // e.g., "pageTitle", "description"
+    fieldName: string, 
     label: string,
     isTextarea = false,
-    serviceSlug?: string // For service items
+    serviceSlug?: string 
   ) => {
-    const fieldBase = fieldName; // e.g., pageTitle, description
+    const fieldBase = fieldName; 
     const idDe = `${pageKey}-${serviceSlug || ''}-${fieldBase}-de`;
     const idEn = `${pageKey}-${serviceSlug || ''}-${fieldBase}-en`;
 
@@ -385,11 +384,11 @@ export default function AdminDashboardPage() {
   };
 
    const renderSingleLanguageField = (
-    pageKey: 'contact' | 'servicesItems', // Specify which pages might have single lang fields
-    fieldName: string, // The exact key in the content object
+    pageKey: 'contact' | 'servicesItems', 
+    fieldName: string, 
     label: string,
     isTextarea = false,
-    serviceSlug?: string // Only for servicesItems
+    serviceSlug?: string 
     ) => {
     let value: string = '';
     let onChangeFunc: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -400,9 +399,9 @@ export default function AdminDashboardPage() {
     } else if (pageKey === 'servicesItems' && serviceSlug) {
         const itemContent = servicesItemsContent[serviceSlug];
         value = (itemContent as any)?.[fieldName] || '';
-        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName /* or serviceField if different */, e.target.value, undefined, serviceSlug, fieldName as keyof ServiceItemContentData);
+        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName , e.target.value, undefined, serviceSlug, fieldName as keyof ServiceItemContentData);
     } else {
-        return null; // Or some error/fallback UI
+        return null; 
     }
     
     const id = `${pageKey}-${serviceSlug || ''}-${fieldName}`;
@@ -431,7 +430,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-5xl mx-auto"> {/* Increased max-width */}
+      <Card className="w-full max-w-5xl mx-auto"> 
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl">Admin Dashboard</CardTitle>
@@ -451,7 +450,6 @@ export default function AdminDashboardPage() {
               <TabsTrigger value="contact"><MailIcon className="mr-2 h-4 w-4"/>Contact</TabsTrigger>
             </TabsList>
 
-            {/* Home Page Tab */}
             <TabsContent value="home" className="space-y-6">
               <Card>
                 <CardHeader><CardTitle>Home Page Content</CardTitle></CardHeader>
@@ -474,7 +472,6 @@ export default function AdminDashboardPage() {
               </Card>
             </TabsContent>
 
-            {/* Services Page Tab */}
             <TabsContent value="services" className="space-y-6">
               <Card>
                 <CardHeader><CardTitle>Services Page Meta Content</CardTitle></CardHeader>
@@ -510,7 +507,6 @@ export default function AdminDashboardPage() {
               </Card>
             </TabsContent>
 
-            {/* How It Works Page Tab */}
             <TabsContent value="how-it-works" className="space-y-6">
                 <Card>
                     <CardHeader><CardTitle>How It Works Page Content</CardTitle></CardHeader>
@@ -538,7 +534,6 @@ export default function AdminDashboardPage() {
                 </Card>
             </TabsContent>
 
-            {/* Contact Page Tab */}
             <TabsContent value="contact" className="space-y-6">
                 <Card>
                     <CardHeader><CardTitle>Contact Page Content</CardTitle></CardHeader>
@@ -584,3 +579,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    
