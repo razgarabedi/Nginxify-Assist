@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/(admin)/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -12,12 +12,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, LogOut, Save, FileText, HomeIcon, SettingsIcon, MailIcon, Briefcase } from 'lucide-react';
-import type { Service } from '@/lib/services-data';
-import { allServices as initialAllServices } from '@/lib/services-data'; // Renamed to avoid conflict
 
-// Helper function to create initial content structures
-// In a real app, this would come from a CMS or database
-const getInitialHomeContent = () => ({
+import { allServices as serviceDefinitions, type Service as ServiceDefinition } from '@/lib/services-data';
+import { 
+  getContent, 
+  saveContent,
+  type AllContentData,
+  type HomeContentData,
+  type ServicesPageData,
+  type ServiceItemContentData,
+  type HowItWorksContentData,
+  type ContactContentData
+} from '@/actions/content-actions';
+
+// Helper function to get initial content structure (only for fallback if JSON is empty/corrupt)
+const getInitialHomeData = (): HomeContentData => ({
   pageTitle_de: 'nginxify Hilfe: Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen',
   pageTitle_en: 'Nginxify Help: Volunteer IT Support for Clubs & Individuals',
   pageDescription_de: 'Wir helfen digital – kostenlos oder gegen eine freiwillige Spende. Unsere Mission ist es, gemeinnützige Organisationen und Privatpersonen mit IT-Herausforderungen zu unterstützen.',
@@ -48,7 +57,7 @@ const getInitialHomeContent = () => ({
   howItWorksButton_en: 'How It Works',
 });
 
-const getInitialServicesPageContent = () => ({
+const getInitialServicesPageData = (): ServicesPageData => ({
   pageTitle_de: 'Unsere Leistungen',
   pageTitle_en: 'Our Services',
   pageDescription_de: 'Wir bieten ehrenamtliche IT-Unterstützung für gemeinnützige Organisationen und Privatpersonen. Unser Fokus liegt auf grundlegender Hilfe und Beratung.',
@@ -63,7 +72,10 @@ const getInitialServicesPageContent = () => ({
   individualSectionDescription_en: 'We help you with everyday IT problems and questions about computers, smartphones, and the internet.',
 });
 
-const getInitialHowItWorksContent = () => ({
+// This will be for display structure, text comes from servicesItemsContent
+const getInitialEditableServices = (): ServiceDefinition[] => JSON.parse(JSON.stringify(serviceDefinitions));
+
+const getInitialHowItWorksData = (): HowItWorksContentData => ({
   pageTitle_de: 'So Funktioniert\'s',
   pageTitle_en: 'How It Works',
   pageDescription_de: 'Erfahren Sie mehr über unser ehrenamtliches Modell, wie Sie Hilfe anfordern können und was Sie erwarten können.',
@@ -104,7 +116,7 @@ const getInitialHowItWorksContent = () => ({
   ctaButton_en: 'Contact Us Now',
 });
 
-const getInitialContactContent = () => ({
+const getInitialContactData = (): ContactContentData => ({
   pageTitle_de: 'Kontaktieren Sie Uns',
   pageTitle_en: 'Contact Us',
   pageDescription_de: 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.',
@@ -156,20 +168,23 @@ const getInitialContactContent = () => ({
   phoneInfoNumber: '+49 123 456789',
 });
 
-
 export default function AdminDashboardPage() {
   const { isAuthenticated, logout, isLoading: authIsLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  // Content states for each page
-  const [homeContent, setHomeContent] = useState(getInitialHomeContent);
-  const [servicesPageContent, setServicesPageContent] = useState(getInitialServicesPageContent);
-  const [editableServices, setEditableServices] = useState<Service[]>(() => JSON.parse(JSON.stringify(initialAllServices))); // Deep copy for editing
-  const [howItWorksContent, setHowItWorksContent] = useState(getInitialHowItWorksContent);
-  const [contactContent, setContactContent] = useState(getInitialContactContent);
+  // Content states for each page, initialized with fallbacks
+  const [homeContent, setHomeContent] = useState<HomeContentData>(getInitialHomeData);
+  const [servicesPageContent, setServicesPageContent] = useState<ServicesPageData>(getInitialServicesPageData);
+  const [servicesItemsContent, setServicesItemsContent] = useState<Record<string, ServiceItemContentData>>({});
+  const [howItWorksContent, setHowItWorksContent] = useState<HowItWorksContentData>(getInitialHowItWorksData);
+  const [contactContent, setContactContent] = useState<ContactContentData>(getInitialContactData);
   
-  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({}); // Saving state per tab
+  // For display of service structure (slug, icon, category) - not directly editable text
+  const [displayServices, setDisplayServices] = useState<ServiceDefinition[]>(getInitialEditableServices);
+
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
+  const [isLoadingContent, setIsLoadingContent] = useState(true);
 
   useEffect(() => {
     if (!authIsLoading && !isAuthenticated) {
@@ -177,112 +192,235 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthenticated, authIsLoading, router]);
 
-  const handleContentChange = (page: string, field: string, value: string, lang?: 'de' | 'en', serviceIndex?: number, serviceField?: keyof Service) => {
-    if (page === 'home') {
-      setHomeContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
-    } else if (page === 'servicesPage') {
-      setServicesPageContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
-    } else if (page === 'servicesItems' && typeof serviceIndex === 'number' && serviceField) {
-      setEditableServices(prev => prev.map((service, idx) => 
-        idx === serviceIndex ? { ...service, [serviceField]: value } : service
-      ));
-    } else if (page === 'howItWorks') {
-      setHowItWorksContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
-    } else if (page === 'contact') {
-      setContactContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
-    }
-  };
+  // Load content from JSON file on mount
+  useEffect(() => {
+    async function loadPageContent() {
+      if (isAuthenticated) { // Only load if authenticated
+        setIsLoadingContent(true);
+        try {
+          const data = await getContent();
+          setHomeContent(data.home || getInitialHomeData());
+          setServicesPageContent(data.servicesPage || getInitialServicesPageData());
+          setServicesItemsContent(data.servicesItems || {}); // Initialize even if empty
+          setHowItWorksContent(data.howItWorks || getInitialHowItWorksData());
+          setContactContent(data.contact || getInitialContactData());
 
-  const handleSave = async (pageKey: string, dataToSave: any) => {
-    setIsSaving(prev => ({...prev, [pageKey]: true}));
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    console.log(`Content for ${pageKey} saved:`, dataToSave);
-    toast({
-      title: `${pageKey.charAt(0).toUpperCase() + pageKey.slice(1)} Content Saved`,
-      description: 'Your changes have been (simulated) saved.',
-    });
-    setIsSaving(prev => ({...prev, [pageKey]: false}));
+          // Update displayServices to match loaded servicesItemsContent order/keys
+          const loadedSlugs = Object.keys(data.servicesItems || {});
+          const newDisplayServices = serviceDefinitions.filter(sd => loadedSlugs.includes(sd.slug))
+            .sort((a,b) => loadedSlugs.indexOf(a.slug) - loadedSlugs.indexOf(b.slug));
+          // Add any missing services from definitions
+          serviceDefinitions.forEach(sd => {
+            if(!newDisplayServices.find(ds => ds.slug === sd.slug)) {
+              newDisplayServices.push(sd);
+              // Ensure servicesItemsContent has an entry for newly added services from definitions
+              if (!(data.servicesItems && data.servicesItems[sd.slug])) {
+                const { icon, slug, category, ...textContent } = sd;
+                setServicesItemsContent(prev => ({...prev, [slug]: textContent}));
+              }
+            }
+          });
+          setDisplayServices(newDisplayServices);
+
+        } catch (error) {
+          console.error('Failed to load content:', error);
+          toast({
+            title: 'Error Loading Content',
+            description: 'Could not load website content. Using defaults.',
+            variant: 'destructive',
+          });
+          // Fallback to initial if error
+          setHomeContent(getInitialHomeData());
+          setServicesPageContent(getInitialServicesPageData());
+          setServicesItemsContent(
+            serviceDefinitions.reduce((acc, s) => {
+              const { icon, slug, category, ...textContent } = s;
+              acc[slug] = textContent;
+              return acc;
+            }, {} as Record<string, ServiceItemContentData>)
+          );
+          setHowItWorksContent(getInitialHowItWorksData());
+          setContactContent(getInitialContactData());
+        } finally {
+          setIsLoadingContent(false);
+        }
+      }
+    }
+    loadPageContent();
+  }, [isAuthenticated, toast]);
+
+
+  const handleContentChange = useCallback((
+    pageKey: keyof AllContentData | 'servicesItems', 
+    field: string, 
+    value: string, 
+    lang?: 'de' | 'en', 
+    serviceSlug?: string, // Use slug instead of index
+    serviceField?: keyof ServiceItemContentData
+  ) => {
+    switch (pageKey) {
+      case 'home':
+        setHomeContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
+        break;
+      case 'servicesPage':
+        setServicesPageContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
+        break;
+      case 'servicesItems':
+        if (serviceSlug && serviceField) {
+          setServicesItemsContent(prev => ({
+            ...prev,
+            [serviceSlug]: {
+              ...(prev[serviceSlug] || {}), // Ensure serviceSlug entry exists
+              [field + (lang ? `_${lang}` : '')]: value // For bilingual fields like titleDe, titleEn
+            }
+          }));
+        } else if (serviceSlug && !lang && serviceField === 'imageHint') { // For single language fields like imageHint
+           setServicesItemsContent(prev => ({
+            ...prev,
+            [serviceSlug]: {
+              ...(prev[serviceSlug] || {}),
+              [serviceField]: value
+            }
+          }));
+        }
+        break;
+      case 'howItWorks':
+        setHowItWorksContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
+        break;
+      case 'contact':
+        setContactContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
+        break;
+    }
+  }, []);
+
+
+  const handleSaveAllContent = async () => {
+    setIsSaving(prev => ({ ...prev, AllContent: true }));
+    const allData: AllContentData = {
+      home: homeContent,
+      servicesPage: servicesPageContent,
+      servicesItems: servicesItemsContent,
+      howItWorks: howItWorksContent,
+      contact: contactContent,
+    };
+    const result = await saveContent(allData);
+    if (result.success) {
+      toast({
+        title: 'All Content Saved',
+        description: 'Website content has been updated.',
+      });
+    } else {
+      toast({
+        title: 'Error Saving Content',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
+    setIsSaving(prev => ({ ...prev, AllContent: false }));
   };
   
-  const renderFormField = (page: string, fieldName: string, label: string, isTextarea = false, serviceIndex?: number, serviceField?: keyof Service) => (
-    <div key={`${page}-${fieldName}-${serviceIndex || ''}`} className="space-y-4 py-2">
-      <h4 className="font-medium col-span-full">{label}</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-        <div>
-          <Label htmlFor={`${page}-${fieldName}-de`}>Deutsch</Label>
-          {isTextarea ? (
-            <Textarea
-              id={`${page}-${fieldName}-de`}
-              value={(page === 'servicesItems' && typeof serviceIndex === 'number' && serviceField) ? String(editableServices[serviceIndex][serviceField] || '') : (homeContent as any)[`${fieldName}_de`]}
-              onChange={(e) => handleContentChange(page, fieldName, e.target.value, 'de', serviceIndex, serviceField)}
-              rows={fieldName.toLowerCase().includes('description') ? 5 : 3}
-              className="w-full mt-1"
-            />
-          ) : (
-            <Input
-              id={`${page}-${fieldName}-de`}
-              value={(page === 'servicesItems' && typeof serviceIndex === 'number' && serviceField) ? String(editableServices[serviceIndex][serviceField] || '') : (homeContent as any)[`${fieldName}_de`]}
-              onChange={(e) => handleContentChange(page, fieldName, e.target.value, 'de', serviceIndex, serviceField)}
-              className="w-full mt-1"
-            />
-          )}
-        </div>
-        <div>
-          <Label htmlFor={`${page}-${fieldName}-en`}>English</Label>
-          {isTextarea ? (
-            <Textarea
-              id={`${page}-${fieldName}-en`}
-              value={(page === 'servicesItems' && typeof serviceIndex === 'number' && serviceField) ? String(editableServices[serviceIndex][serviceField] || '') : (homeContent as any)[`${fieldName}_en`]}
-              onChange={(e) => handleContentChange(page, fieldName, e.target.value, 'en', serviceIndex, serviceField)}
-              rows={fieldName.toLowerCase().includes('description') ? 5 : 3}
-              className="w-full mt-1"
-            />
-          ) : (
-            <Input
-              id={`${page}-${fieldName}-en`}
-              value={(page === 'servicesItems' && typeof serviceIndex === 'number' && serviceField) ? String(editableServices[serviceIndex][serviceField] || '') : (homeContent as any)[`${fieldName}_en`]}
-              onChange={(e) => handleContentChange(page, fieldName, e.target.value, 'en', serviceIndex, serviceField)}
-              className="w-full mt-1"
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  // Adjusted renderFormField to work with specific content types and service slugs
+  const renderBilingualField = (
+    pageKey: 'home' | 'servicesPage' | 'howItWorks' | 'contact' | 'servicesItems',
+    fieldName: string, // e.g., "pageTitle", "description"
+    label: string,
+    isTextarea = false,
+    serviceSlug?: string // For service items
+  ) => {
+    const fieldBase = fieldName; // e.g., pageTitle, description
+    const idDe = `${pageKey}-${serviceSlug || ''}-${fieldBase}-de`;
+    const idEn = `${pageKey}-${serviceSlug || ''}-${fieldBase}-en`;
 
-   const renderSingleField = (page: string, fieldName: string, label: string, isTextarea = false, serviceIndex?:number, serviceField?: keyof Service) => {
-    let value;
-    if (page === 'servicesItems' && typeof serviceIndex === 'number' && serviceField) {
-        value = String(editableServices[serviceIndex][serviceField] || '');
-    } else if (page === 'contact') {
-        value = (contactContent as any)[fieldName];
-    } // Add other pages if they have single language fields
+    let valueDe: string = '';
+    let valueEn: string = '';
+
+    if (pageKey === 'home') {
+        valueDe = (homeContent as any)[`${fieldBase}_de`] || '';
+        valueEn = (homeContent as any)[`${fieldBase}_en`] || '';
+    } else if (pageKey === 'servicesPage') {
+        valueDe = (servicesPageContent as any)[`${fieldBase}_de`] || '';
+        valueEn = (servicesPageContent as any)[`${fieldBase}_en`] || '';
+    } else if (pageKey === 'howItWorks') {
+        valueDe = (howItWorksContent as any)[`${fieldBase}_de`] || '';
+        valueEn = (howItWorksContent as any)[`${fieldBase}_en`] || '';
+    } else if (pageKey === 'contact') {
+        valueDe = (contactContent as any)[`${fieldBase}_de`] || '';
+        valueEn = (contactContent as any)[`${fieldBase}_en`] || '';
+    } else if (pageKey === 'servicesItems' && serviceSlug) {
+        const itemContent = servicesItemsContent[serviceSlug];
+        if (itemContent) {
+            valueDe = (itemContent as any)[`${fieldBase}_de`] || '';
+            valueEn = (itemContent as any)[`${fieldBase}_en`] || '';
+        }
+    }
+    
+    const onChangeDe = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
+      handleContentChange(pageKey, fieldBase, e.target.value, 'de', serviceSlug, fieldBase as keyof ServiceItemContentData);
+    const onChangeEn = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
+      handleContentChange(pageKey, fieldBase, e.target.value, 'en', serviceSlug, fieldBase as keyof ServiceItemContentData);
 
     return (
-        <div key={`${page}-${fieldName}-${serviceIndex || ''}`} className="space-y-2 py-2">
-        <Label htmlFor={`${page}-${fieldName}`}>{label}</Label>
+      <div key={`${pageKey}-${serviceSlug || ''}-${fieldBase}`} className="space-y-4 py-2">
+        <h4 className="font-medium col-span-full">{label}</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          <div>
+            <Label htmlFor={idDe}>Deutsch</Label>
+            {isTextarea ? (
+              <Textarea id={idDe} value={valueDe} onChange={onChangeDe} rows={fieldName.toLowerCase().includes('description') ? 5 : 3} className="w-full mt-1" />
+            ) : (
+              <Input id={idDe} value={valueDe} onChange={onChangeDe} className="w-full mt-1" />
+            )}
+          </div>
+          <div>
+            <Label htmlFor={idEn}>English</Label>
+            {isTextarea ? (
+              <Textarea id={idEn} value={valueEn} onChange={onChangeEn} rows={fieldName.toLowerCase().includes('description') ? 5 : 3} className="w-full mt-1" />
+            ) : (
+              <Input id={idEn} value={valueEn} onChange={onChangeEn} className="w-full mt-1" />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+   const renderSingleLanguageField = (
+    pageKey: 'contact' | 'servicesItems', // Specify which pages might have single lang fields
+    fieldName: string, // The exact key in the content object
+    label: string,
+    isTextarea = false,
+    serviceSlug?: string // Only for servicesItems
+    ) => {
+    let value: string = '';
+    let onChangeFunc: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+
+    if (pageKey === 'contact') {
+        value = (contactContent as any)[fieldName] || '';
+        onChangeFunc = (e) => handleContentChange('contact', fieldName, e.target.value);
+    } else if (pageKey === 'servicesItems' && serviceSlug) {
+        const itemContent = servicesItemsContent[serviceSlug];
+        value = (itemContent as any)?.[fieldName] || '';
+        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName /* or serviceField if different */, e.target.value, undefined, serviceSlug, fieldName as keyof ServiceItemContentData);
+    } else {
+        return null; // Or some error/fallback UI
+    }
+    
+    const id = `${pageKey}-${serviceSlug || ''}-${fieldName}`;
+
+    return (
+        <div key={id} className="space-y-2 py-2">
+        <Label htmlFor={id}>{label}</Label>
         {isTextarea ? (
-            <Textarea
-            id={`${page}-${fieldName}`}
-            value={value}
-            onChange={(e) => handleContentChange(page, fieldName, e.target.value, undefined, serviceIndex, serviceField)}
-            rows={3}
-            className="w-full mt-1"
-            />
+            <Textarea id={id} value={value} onChange={onChangeFunc} rows={3} className="w-full mt-1" />
         ) : (
-            <Input
-            id={`${page}-${fieldName}`}
-            value={value}
-            onChange={(e) => handleContentChange(page, fieldName, e.target.value, undefined, serviceIndex, serviceField)}
-            className="w-full mt-1"
-            />
+            <Input id={id} value={value} onChange={onChangeFunc} className="w-full mt-1" />
         )}
         </div>
     );
-    };
+  };
 
 
-  if (authIsLoading || !isAuthenticated) {
+  if (authIsLoading || isLoadingContent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -293,7 +431,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-4xl mx-auto">
+      <Card className="w-full max-w-5xl mx-auto"> {/* Increased max-width */}
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-2xl">Admin Dashboard</CardTitle>
@@ -302,7 +440,7 @@ export default function AdminDashboardPage() {
               Logout
             </Button>
           </div>
-          <CardDescription>Edit website content below. Changes are simulated.</CardDescription>
+          <CardDescription>Edit website content below. Changes will be saved to content.json.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="home" className="w-full">
@@ -318,27 +456,21 @@ export default function AdminDashboardPage() {
               <Card>
                 <CardHeader><CardTitle>Home Page Content</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  {renderFormField('home', 'pageTitle', 'Page Title')}
-                  {renderFormField('home', 'pageDescription', 'Page Description', true)}
-                  {renderFormField('home', 'requestHelpButton', 'Request Help Button')}
-                  {renderFormField('home', 'learnMoreButton', 'Learn More Button')}
-                  {renderFormField('home', 'clubsTitle', 'Clubs Title')}
-                  {renderFormField('home', 'clubsDescription', 'Clubs Meta Description')}
-                  {renderFormField('home', 'clubsText', 'Clubs Text', true)}
-                  {renderFormField('home', 'individualsTitle', 'Individuals Title')}
-                  {renderFormField('home', 'individualsDescription', 'Individuals Meta Description')}
-                  {renderFormField('home', 'individualsText', 'Individuals Text', true)}
-                  {renderFormField('home', 'viewDetailsButton', 'View Details Button')}
-                  {renderFormField('home', 'howItWorksTitle', 'How It Works Title')}
-                  {renderFormField('home', 'howItWorksDescription', 'How It Works Description', true)}
-                  {renderFormField('home', 'howItWorksButton', 'How It Works Button')}
+                  {renderBilingualField('home', 'pageTitle', 'Page Title')}
+                  {renderBilingualField('home', 'pageDescription', 'Page Description', true)}
+                  {renderBilingualField('home', 'requestHelpButton', 'Request Help Button')}
+                  {renderBilingualField('home', 'learnMoreButton', 'Learn More Button')}
+                  {renderBilingualField('home', 'clubsTitle', 'Clubs Title')}
+                  {renderBilingualField('home', 'clubsDescription', 'Clubs Meta Description')}
+                  {renderBilingualField('home', 'clubsText', 'Clubs Text', true)}
+                  {renderBilingualField('home', 'individualsTitle', 'Individuals Title')}
+                  {renderBilingualField('home', 'individualsDescription', 'Individuals Meta Description')}
+                  {renderBilingualField('home', 'individualsText', 'Individuals Text', true)}
+                  {renderBilingualField('home', 'viewDetailsButton', 'View Details Button')}
+                  {renderBilingualField('home', 'howItWorksTitle', 'How It Works Title')}
+                  {renderBilingualField('home', 'howItWorksDescription', 'How It Works Description', true)}
+                  {renderBilingualField('home', 'howItWorksButton', 'How It Works Button')}
                 </CardContent>
-                <CardFooter>
-                  <Button onClick={() => handleSave('Home', homeContent)} disabled={isSaving['Home']}>
-                    {isSaving['Home'] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Save Home Content
-                  </Button>
-                </CardFooter>
               </Card>
             </TabsContent>
 
@@ -347,49 +479,34 @@ export default function AdminDashboardPage() {
               <Card>
                 <CardHeader><CardTitle>Services Page Meta Content</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  {renderFormField('servicesPage', 'pageTitle', 'Page Title')}
-                  {renderFormField('servicesPage', 'pageDescription', 'Page Description', true)}
-                  {renderFormField('servicesPage', 'clubSectionTitle', 'Clubs Section Title')}
-                  {renderFormField('servicesPage', 'clubSectionDescription', 'Clubs Section Description', true)}
-                  {renderFormField('servicesPage', 'individualSectionTitle', 'Individuals Section Title')}
-                  {renderFormField('servicesPage', 'individualSectionDescription', 'Individuals Section Description', true)}
+                  {renderBilingualField('servicesPage', 'pageTitle', 'Page Title')}
+                  {renderBilingualField('servicesPage', 'pageDescription', 'Page Description', true)}
+                  {renderBilingualField('servicesPage', 'clubSectionTitle', 'Clubs Section Title')}
+                  {renderBilingualField('servicesPage', 'clubSectionDescription', 'Clubs Section Description', true)}
+                  {renderBilingualField('servicesPage', 'individualSectionTitle', 'Individuals Section Title')}
+                  {renderBilingualField('servicesPage', 'individualSectionDescription', 'Individuals Section Description', true)}
                 </CardContent>
-                 <CardFooter>
-                  <Button onClick={() => handleSave('Services Page Meta', servicesPageContent)} disabled={isSaving['Services Page Meta']}>
-                    {isSaving['Services Page Meta'] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Save Services Page Meta
-                  </Button>
-                </CardFooter>
               </Card>
               
               <Card>
                 <CardHeader><CardTitle>Individual Services</CardTitle></CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
-                    {editableServices.map((service, index) => (
-                      <AccordionItem value={`service-${index}`} key={service.slug}>
-                        <AccordionTrigger>{service.titleEn} / {service.titleDe}</AccordionTrigger>
+                    {displayServices.map((serviceDef) => (
+                      <AccordionItem value={`service-${serviceDef.slug}`} key={serviceDef.slug}>
+                        <AccordionTrigger>{servicesItemsContent[serviceDef.slug]?.titleEn || serviceDef.titleEn} / {servicesItemsContent[serviceDef.slug]?.titleDe || serviceDef.titleDe}</AccordionTrigger>
                         <AccordionContent className="space-y-4 pl-2 border-l-2 ml-2">
-                          {renderFormField('servicesItems', 'title', 'Service Title', false, index, 'titleDe', )}
-                          {renderFormField('servicesItems', 'title', '', false, index, 'titleEn')}
-                          {renderFormField('servicesItems', 'description', 'Short Description', true, index, 'descriptionDe')}
-                          {renderFormField('servicesItems', 'description', '', true, index, 'descriptionEn')}
-                          {renderFormField('servicesItems', 'detailedDescription', 'Detailed Description (HTML)', true, index, 'detailedDescriptionDe')}
-                           {renderFormField('servicesItems', 'detailedDescription', '', true, index, 'detailedDescriptionEn')}
-                          {renderSingleField('servicesItems', 'imageHint', 'Image Hint (Keywords for AI)', false, index, 'imageHint')}
-                          {/* Image URL is not directly editable here for simplicity, could be a text field if needed */}
-                           <p className="text-sm text-muted-foreground">Icon for this service is: {service.icon.props.className.match(/lucide-\w+/)?.[0].replace('lucide-','') || 'Custom Icon'} (Not editable here)</p>
+                          {renderBilingualField('servicesItems', 'title', 'Service Title', false, serviceDef.slug)}
+                          {renderBilingualField('servicesItems', 'description', 'Short Description', true, serviceDef.slug)}
+                          {renderBilingualField('servicesItems', 'detailedDescription', 'Detailed Description (HTML)', true, serviceDef.slug)}
+                          {renderSingleLanguageField('servicesItems', 'imageHint', 'Image Hint (Keywords for AI)', false, serviceDef.slug)}
+                          {renderSingleLanguageField('servicesItems', 'imageUrl', 'Image URL (e.g., https://picsum.photos/400/250)', false, serviceDef.slug)}
+                           <p className="text-sm text-muted-foreground">Icon: {serviceDef.icon.props.className.match(/lucide-\w+/)?.[0].replace('lucide-','') || 'Custom Icon'} (Defined in code, not editable here)</p>
                         </AccordionContent>
                       </AccordionItem>
                     ))}
                   </Accordion>
                 </CardContent>
-                 <CardFooter>
-                  <Button onClick={() => handleSave('Services List', editableServices)} disabled={isSaving['Services List']}>
-                    {isSaving['Services List'] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                    Save All Services
-                  </Button>
-                </CardFooter>
               </Card>
             </TabsContent>
 
@@ -398,32 +515,26 @@ export default function AdminDashboardPage() {
                 <Card>
                     <CardHeader><CardTitle>How It Works Page Content</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
-                        {renderFormField('howItWorks', 'pageTitle', 'Page Title')}
-                        {renderFormField('howItWorks', 'pageDescription', 'Page Description', true)}
-                        {renderFormField('howItWorks', 'volunteerTitle', 'Volunteer Title')}
-                        {renderFormField('howItWorks', 'volunteerDescription', 'Volunteer Description', true)}
-                        {renderFormField('howItWorks', 'costTitle', 'Cost Title')}
-                        {renderFormField('howItWorks', 'costDescription', 'Cost Description', true)}
-                        {renderFormField('howItWorks', 'requestTitle', 'Request Help Title')}
-                        {renderFormField('howItWorks', 'requestDescriptionPart1', 'Request Description Part 1')}
-                        {renderFormField('howItWorks', 'requestDescriptionLink', 'Request Description Link Text')}
-                        {renderFormField('howItWorks', 'requestDescriptionPart2', 'Request Description Part 2')}
-                        {renderFormField('howItWorks', 'expectationTitle', 'Expectation Title')}
-                        {renderFormField('howItWorks', 'expectationDescription', 'Expectation Description', true)}
-                        {renderFormField('howItWorks', 'whoTitle', 'Who We Are Title')}
-                        {renderFormField('howItWorks', 'whoDescription', 'Who We Are Description', true)}
-                        {renderFormField('howItWorks', 'donationsTitle', 'Donations Title')}
-                        {renderFormField('howItWorks', 'donationsDescription', 'Donations Description', true)}
-                        {renderFormField('howItWorks', 'ctaTitle', 'CTA Title')}
-                        {renderFormField('howItWorks', 'ctaDescription', 'CTA Description', true)}
-                        {renderFormField('howItWorks', 'ctaButton', 'CTA Button Text')}
+                        {renderBilingualField('howItWorks', 'pageTitle', 'Page Title')}
+                        {renderBilingualField('howItWorks', 'pageDescription', 'Page Description', true)}
+                        {renderBilingualField('howItWorks', 'volunteerTitle', 'Volunteer Title')}
+                        {renderBilingualField('howItWorks', 'volunteerDescription', 'Volunteer Description', true)}
+                        {renderBilingualField('howItWorks', 'costTitle', 'Cost Title')}
+                        {renderBilingualField('howItWorks', 'costDescription', 'Cost Description', true)}
+                        {renderBilingualField('howItWorks', 'requestTitle', 'Request Help Title')}
+                        {renderBilingualField('howItWorks', 'requestDescriptionPart1', 'Request Description Part 1')}
+                        {renderBilingualField('howItWorks', 'requestDescriptionLink', 'Request Description Link Text')}
+                        {renderBilingualField('howItWorks', 'requestDescriptionPart2', 'Request Description Part 2')}
+                        {renderBilingualField('howItWorks', 'expectationTitle', 'Expectation Title')}
+                        {renderBilingualField('howItWorks', 'expectationDescription', 'Expectation Description', true)}
+                        {renderBilingualField('howItWorks', 'whoTitle', 'Who We Are Title')}
+                        {renderBilingualField('howItWorks', 'whoDescription', 'Who We Are Description', true)}
+                        {renderBilingualField('howItWorks', 'donationsTitle', 'Donations Title')}
+                        {renderBilingualField('howItWorks', 'donationsDescription', 'Donations Description', true)}
+                        {renderBilingualField('howItWorks', 'ctaTitle', 'CTA Title')}
+                        {renderBilingualField('howItWorks', 'ctaDescription', 'CTA Description', true)}
+                        {renderBilingualField('howItWorks', 'ctaButton', 'CTA Button Text')}
                     </CardContent>
-                    <CardFooter>
-                        <Button onClick={() => handleSave('How It Works', howItWorksContent)} disabled={isSaving['How It Works']}>
-                            {isSaving['How It Works'] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            Save How It Works Content
-                        </Button>
-                    </CardFooter>
                 </Card>
             </TabsContent>
 
@@ -432,43 +543,43 @@ export default function AdminDashboardPage() {
                 <Card>
                     <CardHeader><CardTitle>Contact Page Content</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
-                        {renderFormField('contact', 'pageTitle', 'Page Title')}
-                        {renderFormField('contact', 'pageDescription', 'Page Description', true)}
-                        {renderFormField('contact', 'formTitle', 'Form Title')}
-                        {renderFormField('contact', 'alertTitle', 'Alert Title')}
-                        {renderFormField('contact', 'alertDescription', 'Alert Description', true)}
-                        {renderFormField('contact', 'nameLabel', 'Name Label')}
-                        {renderFormField('contact', 'namePlaceholder', 'Name Placeholder')}
-                        {renderFormField('contact', 'emailLabel', 'Email Label')}
-                        {renderFormField('contact', 'emailPlaceholder', 'Email Placeholder')}
-                        {renderFormField('contact', 'subjectLabel', 'Subject Label')}
-                        {renderFormField('contact', 'subjectPlaceholder', 'Subject Placeholder')}
-                        {renderFormField('contact', 'messageLabel', 'Message Label')}
-                        {renderFormField('contact', 'messagePlaceholder', 'Message Placeholder')}
-                        {renderFormField('contact', 'messageDescription', 'Message Description')}
-                        {renderFormField('contact', 'techDetailsLabel', 'Tech Details Label')}
-                        {renderFormField('contact', 'techDetailsPlaceholder', 'Tech Details Placeholder')}
-                        {renderFormField('contact', 'techDetailsDescription', 'Tech Details Description')}
-                        {renderFormField('contact', 'submitButton', 'Submit Button Text')}
-                        {renderFormField('contact', 'directContactTitle', 'Direct Contact Title')}
-                        {renderFormField('contact', 'emailInfoTitle', 'Email Info Title')}
-                        {renderFormField('contact', 'emailInfoText', 'Email Info Text')}
-                        {renderFormField('contact', 'emailInfoHint', 'Email Info Hint')}
-                        {renderFormField('contact', 'phoneInfoTitle', 'Phone Info Title')}
-                        {renderFormField('contact', 'phoneInfoText', 'Phone Info Text')}
-                        {renderSingleField('contact', 'phoneInfoNumber', 'Phone Info Number')}
+                        {renderBilingualField('contact', 'pageTitle', 'Page Title')}
+                        {renderBilingualField('contact', 'pageDescription', 'Page Description', true)}
+                        {renderBilingualField('contact', 'formTitle', 'Form Title')}
+                        {renderBilingualField('contact', 'alertTitle', 'Alert Title')}
+                        {renderBilingualField('contact', 'alertDescription', 'Alert Description', true)}
+                        {renderBilingualField('contact', 'nameLabel', 'Name Label')}
+                        {renderBilingualField('contact', 'namePlaceholder', 'Name Placeholder')}
+                        {renderBilingualField('contact', 'emailLabel', 'Email Label')}
+                        {renderBilingualField('contact', 'emailPlaceholder', 'Email Placeholder')}
+                        {renderBilingualField('contact', 'subjectLabel', 'Subject Label')}
+                        {renderBilingualField('contact', 'subjectPlaceholder', 'Subject Placeholder')}
+                        {renderBilingualField('contact', 'messageLabel', 'Message Label')}
+                        {renderBilingualField('contact', 'messagePlaceholder', 'Message Placeholder')}
+                        {renderBilingualField('contact', 'messageDescription', 'Message Description')}
+                        {renderBilingualField('contact', 'techDetailsLabel', 'Tech Details Label')}
+                        {renderBilingualField('contact', 'techDetailsPlaceholder', 'Tech Details Placeholder')}
+                        {renderBilingualField('contact', 'techDetailsDescription', 'Tech Details Description')}
+                        {renderBilingualField('contact', 'submitButton', 'Submit Button Text')}
+                        {renderBilingualField('contact', 'directContactTitle', 'Direct Contact Title')}
+                        {renderBilingualField('contact', 'emailInfoTitle', 'Email Info Title')}
+                        {renderBilingualField('contact', 'emailInfoText', 'Email Info Text')}
+                        {renderBilingualField('contact', 'emailInfoHint', 'Email Info Hint')}
+                        {renderBilingualField('contact', 'phoneInfoTitle', 'Phone Info Title')}
+                        {renderBilingualField('contact', 'phoneInfoText', 'Phone Info Text')}
+                        {renderSingleLanguageField('contact', 'phoneInfoNumber', 'Phone Info Number')}
                     </CardContent>
-                    <CardFooter>
-                        <Button onClick={() => handleSave('Contact', contactContent)} disabled={isSaving['Contact']}>
-                            {isSaving['Contact'] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                            Save Contact Content
-                        </Button>
-                    </CardFooter>
                 </Card>
             </TabsContent>
 
           </Tabs>
         </CardContent>
+         <CardFooter className="mt-6 border-t pt-6">
+            <Button onClick={handleSaveAllContent} disabled={isSaving['AllContent'] || isLoadingContent} size="lg">
+              {isSaving['AllContent'] ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Save All Changes
+            </Button>
+          </CardFooter>
       </Card>
     </div>
   );

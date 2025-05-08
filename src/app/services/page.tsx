@@ -1,33 +1,87 @@
-
-'use client'; // Make it a client component
+'use client'; 
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, User } from 'lucide-react';
 import Image from "next/image";
-import Link from "next/link"; // Import Link
-import { useLanguage } from '@/context/language-context'; // Import useLanguage hook
-import { allServices } from '@/lib/services-data'; // Import service data
-import React from 'react'; // Import React
+import Link from "next/link"; 
+import { useLanguage } from '@/context/language-context'; 
+import { allServices as serviceDefinitions } from '@/lib/services-data'; // Static definitions for structure, icons
+import React, { useEffect, useState } from 'react';
+import { getContent } from '@/actions/content-actions';
+import type { ServicesPageData, DisplayService, ServiceItemContentData } from '@/lib/content-types';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export default function ServicesPage() {
-  const { language } = useLanguage(); // Use context
+  const { language } = useLanguage(); 
+  const [pageContent, setPageContent] = useState<ServicesPageData | null>(null);
+  const [services, setServices] = useState<DisplayService[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const clubServices = allServices.filter(s => s.category === 'club');
-  const individualServices = allServices.filter(s => s.category === 'individual');
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const allContent = await getContent();
+        setPageContent(allContent.servicesPage);
+
+        // Merge static definitions (slug, icon, category) with dynamic text content
+        const mergedServices: DisplayService[] = serviceDefinitions.map(def => {
+          const dynamicContent = allContent.servicesItems[def.slug] || {} as ServiceItemContentData;
+          return {
+            ...def, // slug, icon, category from definition
+            ...dynamicContent, // titleDe, titleEn, etc. from JSON
+          };
+        });
+        setServices(mergedServices);
+
+      } catch (error) {
+        console.error("Failed to load services content:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadContent();
+  }, []);
+
+  if (isLoading || !pageContent) {
+    return (
+      <div className="space-y-10 md:space-y-12 lg:space-y-16">
+        <section className="text-center px-4">
+          <Skeleton className="h-10 w-1/2 mx-auto mb-4" />
+          <Skeleton className="h-6 w-3/4 mx-auto" />
+        </section>
+        <section className="space-y-6 md:space-y-8">
+          <div className="px-4 md:px-0">
+            <Skeleton className="h-8 w-1/3 mb-2" />
+            <Skeleton className="h-5 w-full" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+            {[1, 2].map(i => <ServiceCardSkeleton key={`club-skel-${i}`} />)}
+          </div>
+        </section>
+        <section className="space-y-6 md:space-y-8">
+          <div className="px-4 md:px-0">
+            <Skeleton className="h-8 w-1/3 mb-2" />
+            <Skeleton className="h-5 w-full" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+            {[1, 2].map(i => <ServiceCardSkeleton key={`ind-skel-${i}`} />)}
+          </div>
+        </section>
+      </div>
+    );
+  }
+  
+  const clubServices = services.filter(s => s.category === 'club');
+  const individualServices = services.filter(s => s.category === 'individual');
 
   const translations = {
-    pageTitle: language === 'en' ? 'Our Services' : 'Unsere Leistungen',
-    pageDescription: language === 'en'
-      ? 'We offer volunteer IT support for non-profit organizations and individuals. Our focus is on basic help and advice.'
-      : 'Wir bieten ehrenamtliche IT-Unterstützung für gemeinnützige Organisationen und Privatpersonen. Unser Fokus liegt auf grundlegender Hilfe und Beratung.',
-    clubSectionTitle: language === 'en' ? 'For Clubs & Organizations' : 'Für Vereine & Organisationen',
-    clubSectionDescription: language === 'en'
-      ? 'We support non-profit clubs and organizations in building their digital presence and overcoming basic IT challenges. Please note that we cannot take on complex, professional large-scale projects.'
-      : 'Wir unterstützen gemeinnützige Vereine und Organisationen dabei, ihre digitale Präsenz aufzubauen und grundlegende IT-Herausforderungen zu meistern. Bitte beachten Sie, dass wir keine komplexen, professionellen Großprojekte übernehmen können.',
-    individualSectionTitle: language === 'en' ? 'For Individuals' : 'Für Privatpersonen',
-    individualSectionDescription: language === 'en'
-      ? 'We help you with everyday IT problems and questions about computers, smartphones, and the internet.'
-      : 'Wir helfen Ihnen bei alltäglichen IT-Problemen und Fragen rund um Computer, Smartphone und Internet.',
+    pageTitle: language === 'en' ? pageContent.pageTitle_en : pageContent.pageTitle_de,
+    pageDescription: language === 'en' ? pageContent.pageDescription_en : pageContent.pageDescription_de,
+    clubSectionTitle: language === 'en' ? pageContent.clubSectionTitle_en : pageContent.clubSectionTitle_de,
+    clubSectionDescription: language === 'en' ? pageContent.clubSectionDescription_en : pageContent.clubSectionDescription_de,
+    individualSectionTitle: language === 'en' ? pageContent.individualSectionTitle_en : pageContent.individualSectionTitle_de,
+    individualSectionDescription: language === 'en' ? pageContent.individualSectionDescription_en : pageContent.individualSectionDescription_de,
   };
 
   return (
@@ -41,21 +95,20 @@ export default function ServicesPage() {
 
       {/* Section for Clubs */}
       <section id="vereine" className="space-y-6 md:space-y-8 scroll-mt-16 md:scroll-mt-20">
-        <div className="px-4 md:px-0"> {/* Add padding for section header consistency */}
-            <h2 className="text-2xl md:text-3xl font-semibold flex items-center gap-3"> {/* Increased gap */}
-            <Users className="text-primary h-6 w-6 md:h-7 md:w-7 flex-shrink-0" /> {/* Added flex-shrink-0 */}
+        <div className="px-4 md:px-0"> 
+            <h2 className="text-2xl md:text-3xl font-semibold flex items-center gap-3"> 
+            <Users className="text-primary h-6 w-6 md:h-7 md:w-7 flex-shrink-0" /> 
             {translations.clubSectionTitle}
             </h2>
-            <p className="text-muted-foreground mt-2 text-base sm:text-lg"> {/* Added margin top */}
+            <p className="text-muted-foreground mt-2 text-base sm:text-lg"> 
             {translations.clubSectionDescription}
             </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8"> {/* Consistent gap */}
           {clubServices.map((service) => (
-            // Wrap ServiceCard with Link
             <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
-                  icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} // Pass className to icon
+                  icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} 
                   title={language === 'en' ? service.titleEn : service.titleDe}
                   description={language === 'en' ? service.descriptionEn : service.descriptionDe}
                   imageUrl={service.imageUrl}
@@ -68,21 +121,20 @@ export default function ServicesPage() {
 
       {/* Section for Individuals */}
       <section id="privatpersonen" className="space-y-6 md:space-y-8 scroll-mt-16 md:scroll-mt-20">
-         <div className="px-4 md:px-0"> {/* Add padding for section header consistency */}
-            <h2 className="text-2xl md:text-3xl font-semibold flex items-center gap-3"> {/* Increased gap */}
-            <User className="text-primary h-6 w-6 md:h-7 md:w-7 flex-shrink-0" /> {/* Added flex-shrink-0 */}
+         <div className="px-4 md:px-0"> 
+            <h2 className="text-2xl md:text-3xl font-semibold flex items-center gap-3"> 
+            <User className="text-primary h-6 w-6 md:h-7 md:w-7 flex-shrink-0" /> 
             {translations.individualSectionTitle}
             </h2>
-            <p className="text-muted-foreground mt-2 text-base sm:text-lg"> {/* Added margin top */}
+            <p className="text-muted-foreground mt-2 text-base sm:text-lg"> 
             {translations.individualSectionDescription}
             </p>
          </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8"> {/* Consistent gap */}
           {individualServices.map((service) => (
-            // Wrap ServiceCard with Link
              <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
-                   icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} // Pass className to icon
+                   icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} 
                    title={language === 'en' ? service.titleEn : service.titleDe}
                    description={language === 'en' ? service.descriptionEn : service.descriptionDe}
                    imageUrl={service.imageUrl}
@@ -104,31 +156,47 @@ interface ServiceCardProps {
   imageHint: string;
 }
 
-// ServiceCard remains largely the same, but will inherit hover/focus states from the parent Link
 function ServiceCard({ icon, title, description, imageUrl, imageHint }: ServiceCardProps) {
   return (
-    <Card className="overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 flex flex-col h-full bg-card"> {/* Added h-full and bg-card */}
-       {/* Use aspect-ratio for responsive image container */}
-       <div className="relative w-full aspect-video"> {/* aspect-video provides 16:9 ratio */}
+    <Card className="overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 flex flex-col h-full bg-card"> 
+       <div className="relative w-full aspect-video"> 
          <Image
           src={imageUrl}
           alt={title}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" // Sizes remain similar
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" 
           style={{ objectFit: 'cover' }}
           className="transition-transform duration-300 group-hover:scale-105"
           data-ai-hint={imageHint}
-          // Removed unoptimized prop
+          priority={false} // No need for priority on list items
         />
       </div>
-      <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2"> {/* Consistent padding */}
+      <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2"> 
         <div className="flex-shrink-0 pt-0.5">{icon}</div>
         <div className="flex-grow">
           <CardTitle className="text-lg md:text-xl group-hover:text-primary transition-colors duration-300">{title}</CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow p-4 sm:p-6 pt-0"> {/* Consistent padding */}
-        <CardDescription className="text-sm text-muted-foreground">{description}</CardDescription> {/* Ensure text color */}
+      <CardContent className="flex-grow p-4 sm:p-6 pt-0"> 
+        <CardDescription className="text-sm text-muted-foreground">{description}</CardDescription> 
+      </CardContent>
+    </Card>
+  );
+}
+
+function ServiceCardSkeleton() {
+  return (
+    <Card className="overflow-hidden shadow-lg flex flex-col h-full bg-card">
+      <Skeleton className="w-full aspect-video" />
+      <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2">
+        <Skeleton className="h-6 w-6 rounded-full flex-shrink-0 pt-0.5" />
+        <div className="flex-grow">
+          <Skeleton className="h-6 w-3/4" />
+        </div>
+      </CardHeader>
+      <CardContent className="flex-grow p-4 sm:p-6 pt-0">
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-5/6" />
       </CardContent>
     </Card>
   );

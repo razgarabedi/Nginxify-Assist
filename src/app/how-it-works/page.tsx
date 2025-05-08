@@ -1,53 +1,73 @@
-
-'use client'; // Make it a client component
+'use client'; 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Handshake, MessageSquare, Clock, Users, Gift } from 'lucide-react';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from '@/context/language-context';
+import { useEffect, useState } from 'react';
+import type { HowItWorksContentData } from '@/lib/content-types';
+import { getContent } from '@/actions/content-actions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HowItWorksPage() {
   const { language } = useLanguage();
+  const [content, setContent] = useState<HowItWorksContentData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const allContent = await getContent();
+        setContent(allContent.howItWorks);
+      } catch (error) {
+        console.error("Failed to load how-it-works content:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadContent();
+  }, []);
+
+  if (isLoading || !content) {
+    return (
+      <div className="space-y-10 md:space-y-12 lg:space-y-16">
+        <section className="text-center px-4">
+          <Skeleton className="h-10 w-1/2 mx-auto mb-4" />
+          <Skeleton className="h-6 w-3/4 mx-auto" />
+        </section>
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
+          {[...Array(6)].map((_, i) => <InfoCardSkeleton key={i} />)}
+        </section>
+        <section className="text-center py-10 md:py-12 lg:py-16 bg-secondary rounded-lg shadow-md mt-10 md:mt-12 px-4">
+          <Skeleton className="h-8 w-1/3 mx-auto mb-4" />
+          <Skeleton className="h-5 w-1/2 mx-auto mb-6" />
+          <Skeleton className="h-12 w-36 mx-auto" />
+        </section>
+      </div>
+    );
+  }
 
   const translations = {
-    pageTitle: language === 'en' ? 'How It Works' : 'So Funktioniert\'s',
-    pageDescription: language === 'en'
-      ? 'Learn more about our volunteer model, how to request help, and what to expect.'
-      : 'Erfahren Sie mehr über unser ehrenamtliches Modell, wie Sie Hilfe anfordern können und was Sie erwarten können.',
-    volunteerTitle: language === 'en' ? 'Volunteer Commitment' : 'Ehrenamtliches Engagement',
-    volunteerDescription: language === 'en'
-      ? 'Our help is provided by volunteers who offer their IT skills and time to help others. We are a community of tech enthusiasts wanting to do good.'
-      : 'Unsere Hilfe wird von Freiwilligen geleistet, die ihre IT-Kenntnisse und Zeit zur Verfügung stellen, um anderen zu helfen. Wir sind eine Gemeinschaft von Technikbegeisterten, die Gutes tun wollen.',
-    costTitle: language === 'en' ? 'Free & Donation-Based' : 'Kostenlos & Spendenbasiert',
-    costDescription: language === 'en'
-      ? 'Our basic support is free. Voluntary donations are welcome and help us cover any costs and keep the initiative running. However, there is no obligation to donate.'
-      : 'Unsere grundlegende Unterstützung ist kostenlos. Freiwillige Spenden sind willkommen und helfen uns, eventuelle Kosten zu decken und die Initiative am Laufen zu halten. Es besteht jedoch keine Verpflichtung zur Spende.',
-    requestTitle: language === 'en' ? 'Requesting Help' : 'Hilfe Anfordern',
-    requestDescriptionPart1: language === 'en'
-      ? 'The easiest way to request support is via our '
-      : 'Der einfachste Weg, Unterstützung anzufragen, ist über unser ',
-    requestDescriptionLink: language === 'en' ? 'Contact Form' : 'Kontaktformular',
-    requestDescriptionPart2: language === 'en'
-      ? ' or by email. Please describe your issue as accurately as possible so we can better assess your request.'
-      : ' oder per E-Mail. Beschreiben Sie Ihr Anliegen möglichst genau, damit wir Ihre Anfrage besser einschätzen können.',
-    expectationTitle: language === 'en' ? 'Expectation Management' : 'Erwartungsmanagement',
-    expectationDescription: language === 'en'
-      ? 'As we operate on a volunteer basis, help is provided based on the availability of our volunteers. We strive to respond promptly but ask for your understanding if it sometimes takes a little longer. We cannot guarantee to solve every problem, but we do our best.'
-      : 'Da wir ehrenamtlich tätig sind, erfolgt die Hilfe nach Verfügbarkeit unserer Freiwilligen. Wir bemühen uns, zeitnah zu antworten, bitten aber um Verständnis, wenn es manchmal etwas dauern kann. Wir können nicht garantieren, jedes Problem lösen zu können, geben aber unser Bestes.',
-    whoTitle: language === 'en' ? 'Who We Are' : 'Wer wir sind',
-    whoDescription: language === 'en'
-      ? 'We are a group of IT-interested individuals who want to use our skills to help non-profit organizations and individuals with technical challenges.'
-      : 'Wir sind eine Gruppe von IT-interessierten Einzelpersonen, die ihre Fähigkeiten nutzen möchten, um gemeinnützigen Organisationen und Privatpersonen bei technischen Herausforderungen unter die Arme zu greifen.',
-    donationsTitle: language === 'en' ? 'Use of Donations (Optional)' : 'Spendenverwendung (Optional)',
-    donationsDescription: language === 'en'
-      ? 'If donations are received, they will be used transparently to cover operating costs (e.g., website hosting) or to support specific non-profit IT projects.'
-      : 'Falls Spenden eingehen, werden diese transparent zur Deckung von Betriebskosten (z.B. Hosting der Webseite) oder zur Unterstützung spezifischer gemeinnütziger IT-Projekte verwendet.',
-    ctaTitle: language === 'en' ? 'Ready to Request Help?' : 'Bereit, Hilfe anzufragen?',
-    ctaDescription: language === 'en'
-      ? 'Fill out our contact form or send us an email. We look forward to hearing from you!'
-      : 'Füllen Sie unser Kontaktformular aus oder schreiben Sie uns eine E-Mail. Wir freuen uns darauf, von Ihnen zu hören!',
-    ctaButton: language === 'en' ? 'Contact Us Now' : 'Jetzt Kontakt aufnehmen',
+    pageTitle: language === 'en' ? content.pageTitle_en : content.pageTitle_de,
+    pageDescription: language === 'en' ? content.pageDescription_en : content.pageDescription_de,
+    volunteerTitle: language === 'en' ? content.volunteerTitle_en : content.volunteerTitle_de,
+    volunteerDescription: language === 'en' ? content.volunteerDescription_en : content.volunteerDescription_de,
+    costTitle: language === 'en' ? content.costTitle_en : content.costTitle_de,
+    costDescription: language === 'en' ? content.costDescription_en : content.costDescription_de,
+    requestTitle: language === 'en' ? content.requestTitle_en : content.requestTitle_de,
+    requestDescriptionPart1: language === 'en' ? content.requestDescriptionPart1_en : content.requestDescriptionPart1_de,
+    requestDescriptionLink: language === 'en' ? content.requestDescriptionLink_en : content.requestDescriptionLink_de,
+    requestDescriptionPart2: language === 'en' ? content.requestDescriptionPart2_en : content.requestDescriptionPart2_de,
+    expectationTitle: language === 'en' ? content.expectationTitle_en : content.expectationTitle_de,
+    expectationDescription: language === 'en' ? content.expectationDescription_en : content.expectationDescription_de,
+    whoTitle: language === 'en' ? content.whoTitle_en : content.whoTitle_de,
+    whoDescription: language === 'en' ? content.whoDescription_en : content.whoDescription_de,
+    donationsTitle: language === 'en' ? content.donationsTitle_en : content.donationsTitle_de,
+    donationsDescription: language === 'en' ? content.donationsDescription_en : content.donationsDescription_de,
+    ctaTitle: language === 'en' ? content.ctaTitle_en : content.ctaTitle_de,
+    ctaDescription: language === 'en' ? content.ctaDescription_en : content.ctaDescription_de,
+    ctaButton: language === 'en' ? content.ctaButton_en : content.ctaButton_de,
   };
 
   return (
@@ -105,7 +125,6 @@ export default function HowItWorksPage() {
          <p className="text-muted-foreground mb-6 max-w-md md:max-w-xl lg:max-w-2xl mx-auto">
            {translations.ctaDescription}
          </p>
-         {/* Ensure the Link is the *only* direct child when using asChild */}
          <Button asChild size="lg" variant="default" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
            <Link href="/contact">{translations.ctaButton}</Link>
          </Button>
@@ -129,6 +148,22 @@ function InfoCard({ icon, title, description }: InfoCardProps) {
       </CardHeader>
       <CardContent className="text-center text-muted-foreground flex-grow px-4 sm:px-6 pb-6">
         {description}
+      </CardContent>
+    </Card>
+  );
+}
+
+function InfoCardSkeleton() {
+  return (
+    <Card className="shadow-lg flex flex-col">
+      <CardHeader className="items-center text-center pb-3 pt-6 px-4 sm:px-6">
+        <Skeleton className="h-12 w-12 rounded-full mb-3" />
+        <Skeleton className="h-6 w-3/4" />
+      </CardHeader>
+      <CardContent className="text-center flex-grow px-4 sm:px-6 pb-6 space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
       </CardContent>
     </Card>
   );
