@@ -7,36 +7,56 @@ import { getVisitorCount } from '@/actions/get-visitor-count';
 import { useLanguage } from '@/context/language-context';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const POLLING_INTERVAL = 30000; // 30 seconds
+
 export default function VisitorCounter() {
   const [count, setCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // For initial loading skeleton
   const { language } = useLanguage();
 
   useEffect(() => {
-    async function fetchCount() {
+    let isMounted = true;
+
+    const fetchCount = async () => {
       try {
-        setLoading(true);
         const result = await getVisitorCount();
-        setCount(result.count);
+        if (isMounted) {
+          setCount(result.count);
+        }
       } catch (error) {
-        console.error("Failed to fetch visitor count:", error);
-        setCount(null); // Or a fallback/error state
+        if (isMounted) {
+          console.error("Failed to fetch visitor count:", error);
+          // Optionally, handle error state for count display, e.g., setCount(-1) or keep previous
+        }
       } finally {
-        setLoading(false);
+        // Ensure loading is set to false only once after the initial fetch
+        if (isMounted && loading) {
+          setLoading(false);
+        }
       }
-    }
-    fetchCount();
-  }, []);
+    };
+
+    fetchCount(); // Initial fetch
+
+    const intervalId = setInterval(fetchCount, POLLING_INTERVAL);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId); // Cleanup interval on component unmount
+    };
+  }, [loading]); // Effect runs when `loading` state changes, primarily for the initial fetch logic.
+                // The interval setup itself should ideally run once.
+                // Re-running on `loading` change is okay here because `loading` only changes from true to false once.
 
   const translations = {
-    visitors: language === 'en' ? 'Visitors' : 'Besucher',
+    visitors: language === 'en' ? 'Visitors Today' : 'Besucher Heute',
     loading: language === 'en' ? 'Loading visitors...' : 'Besucherzahl lädt...',
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center text-xs sm:text-sm text-muted-foreground">
-        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-32" /> {/* Adjusted width for "Visitors Today" */}
       </div>
     );
   }
@@ -47,8 +67,9 @@ export default function VisitorCounter() {
       <span>
         {count !== null
           ? `${count.toLocaleString()} ${translations.visitors}`
-          : `- ${translations.visitors}`}
+          : `0 ${translations.visitors}`} {/* Show 0 if count is null after loading */}
       </span>
     </div>
   );
 }
+
