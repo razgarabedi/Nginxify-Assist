@@ -84,6 +84,15 @@ If you encounter a generic error like "Error Sending Message" or "Failed to send
 
 ## Deployment on Ubuntu with Nginx
 
+## Changing Admin Login Credentials
+
+The default login credentials for the admin page (`/mngr`) are `user: "admin"` and `password: "admin"`.
+
+**It is crucial to change these default credentials before deploying your application to a production environment.**
+
+To update the credentials, modify the `authCredentials` object in the `AuthContext` provider located in the file `src/app/(admin)/contexts/auth-context.tsx`. Change the values for `user` and `password` to your desired secure credentials.
+
+
 This section outlines the steps to deploy this NextJS application on an Ubuntu server using Nginx as a reverse proxy.
 
 **Prerequisites:**
