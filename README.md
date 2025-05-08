@@ -107,6 +107,10 @@ This section outlines the steps to deploy this NextJS application on an Ubuntu s
 1.  **Build the NextJS Application:**
     Navigate to the project root directory in your terminal and build the application for production:
 
+```bash
+    npm install
+    ```
+
     ```bash
     npm run build
     ```
