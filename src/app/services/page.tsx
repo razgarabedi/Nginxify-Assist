@@ -1,3 +1,4 @@
+
 'use client'; 
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -105,7 +106,7 @@ export default function ServicesPage() {
             </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8"> {/* Consistent gap */}
-          {clubServices.map((service) => (
+          {clubServices.map((service, index) => (
             <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
                   icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} 
@@ -113,6 +114,7 @@ export default function ServicesPage() {
                   description={language === 'en' ? service.descriptionEn : service.descriptionDe}
                   imageUrl={service.imageUrl}
                   imageHint={service.imageHint}
+                  isPriority={index < 1} // Prioritize the first image in this list
                 />
             </Link>
           ))}
@@ -131,7 +133,7 @@ export default function ServicesPage() {
             </p>
          </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8"> {/* Consistent gap */}
-          {individualServices.map((service) => (
+          {individualServices.map((service, index) => (
              <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
                    icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} 
@@ -139,6 +141,7 @@ export default function ServicesPage() {
                    description={language === 'en' ? service.descriptionEn : service.descriptionDe}
                    imageUrl={service.imageUrl}
                    imageHint={service.imageHint}
+                   isPriority={index < 1} // Prioritize the first image in this list
                 />
              </Link>
           ))}
@@ -154,9 +157,10 @@ interface ServiceCardProps {
   description: string;
   imageUrl: string;
   imageHint: string;
+  isPriority?: boolean;
 }
 
-function ServiceCard({ icon, title, description, imageUrl, imageHint }: ServiceCardProps) {
+function ServiceCard({ icon, title, description, imageUrl, imageHint, isPriority = false }: ServiceCardProps) {
   return (
     <Card className="overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 flex flex-col h-full bg-card"> 
        <div className="relative w-full aspect-video"> 
@@ -164,11 +168,11 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint }: ServiceC
           src={imageUrl}
           alt={title}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" 
+          sizes="(max-width: 639px) 100vw, 50vw" 
           style={{ objectFit: 'cover' }}
           className="transition-transform duration-300 group-hover:scale-105"
           data-ai-hint={imageHint}
-          priority={false} // No need for priority on list items
+          priority={isPriority}
         />
       </div>
       <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2"> 
@@ -201,3 +205,4 @@ function ServiceCardSkeleton() {
     </Card>
   );
 }
+

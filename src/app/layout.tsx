@@ -21,6 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://picsum.photos" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+      </head>
       <body
         className={cn(
           GeistSans.variable,
@@ -41,3 +45,4 @@ export default function RootLayout({
     </html>
   );
 }
+

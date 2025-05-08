@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
@@ -13,17 +14,11 @@ import { getContent } from '@/actions/content-actions';
 import type { DisplayService, ServiceItemContentData } from '@/lib/content-types';
 
 interface ServiceDetailPageProps {
-  // As per Next.js error: "params is now a Promise and should be unwrapped with React.use()"
-  // This suggests the 'params' prop itself, when received in a Client Component that Next.js
-  // instruments for future compatibility, should be treated as a Promise.
-  params: Promise<{ slug: string }>;
+  params: { slug: string }; // For Client Components, params are directly available
 }
 
-export default function ServiceDetailPage({ params: routeParamsPromise }: ServiceDetailPageProps) {
-   // Unwrap the params promise using React.use(). This will suspend the component
-   // if the promise is not yet resolved, and return the resolved value once available.
-   const routeParams = use(routeParamsPromise);
-   const { slug } = routeParams;
+export default function ServiceDetailPage({ params: routeParams }: ServiceDetailPageProps) {
+   const { slug } = routeParams; // Use slug from props directly
 
 
    const { language } = useLanguage();
@@ -31,8 +26,8 @@ export default function ServiceDetailPage({ params: routeParamsPromise }: Servic
 
    useEffect(() => {
      async function loadServiceContent() {
-       // slug is guaranteed to be available here because `use(routeParamsPromise)`
-       // would have suspended if the promise wasn't resolved.
+       if (!slug) return; // Should not happen if routeParams is correctly typed and passed
+
        try {
          const allContent = await getContent();
          const serviceDef = serviceDefinitions.find(s => s.slug === slug);
@@ -53,15 +48,9 @@ export default function ServiceDetailPage({ params: routeParamsPromise }: Servic
        }
      }
      
-     // `slug` is resolved by this point due to the `use(routeParamsPromise)` call.
-     // No need to check for `slug`'s existence again before calling `loadServiceContent`.
      loadServiceContent();
      
-   }, [slug]); // Depend on the resolved slug
-
-  // `use(routeParamsPromise)` suspends rendering until `routeParams` (and thus `slug`) are resolved.
-  // The component will only proceed past the `use` call once `slug` is available.
-  // Therefore, `slug` will be defined here.
+   }, [slug]);
   
   // This state means the service content itself is being fetched.
   if (service === undefined) { 
@@ -118,7 +107,7 @@ export default function ServiceDetailPage({ params: routeParamsPromise }: Servic
            src={service.imageUrl || "https://picsum.photos/1280/720"} // Fallback image
            alt={title}
            fill
-           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw" // Adjusted sizes
+           sizes="(max-width: 896px) 100vw, 896px" // Max width of content area is 4xl (896px)
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint || "technology service"} // Fallback hint
            priority // Make LCP image priority
@@ -139,3 +128,9 @@ export default function ServiceDetailPage({ params: routeParamsPromise }: Servic
     </div>
   );
 }
+
+// Removed generateStaticParams and generateMetadata as they are not compatible with "use client"
+// If SEO is critical for these dynamic pages, consider server-side rendering strategies
+// or pre-rendering with getStaticProps/getStaticPaths if the number of services is manageable and rarely changes.
+// For a fully client-rendered approach as implemented, metadata would typically be handled via client-side document.title updates
+// or a more complex setup using a Head manager compatible with client components.
