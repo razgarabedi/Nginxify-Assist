@@ -1,12 +1,11 @@
-
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { useEffect, useState, use } from 'react'; // Ensure 'use' is imported
 import { notFound } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { allServices as serviceDefinitions } from '@/lib/services-data';
 import Image from "next/image";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Heart } from 'lucide-react'; // Heart was added for LCP, keep it
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,19 +13,21 @@ import { getContent } from '@/actions/content-actions';
 import type { DisplayService, ServiceItemContentData } from '@/lib/content-types';
 
 interface ServiceDetailPageProps {
-  params: { slug: string }; // For Client Components, params are directly available
+  params: { slug: string }; // Next.js types this as the resolved shape, but passes a promise to client components
 }
 
-export default function ServiceDetailPage({ params: routeParams }: ServiceDetailPageProps) {
-   const { slug } = routeParams; // Use slug from props directly
-
+// The prop `params` (renamed to `paramsPromise` here for clarity) is the promise.
+export default function ServiceDetailPage({ params: paramsPromise }: ServiceDetailPageProps) {
+   // Use React.use to unwrap the params promise
+   const routeParams = use(paramsPromise);
+   const { slug } = routeParams; // Now slug can be safely accessed
 
    const { language } = useLanguage();
-   const [service, setService] = useState<DisplayService | null | undefined>(undefined); // Initial state undefined for loading
+   const [service, setService] = useState<DisplayService | null | undefined>(undefined);
 
    useEffect(() => {
      async function loadServiceContent() {
-       if (!slug) return; // Should not happen if routeParams is correctly typed and passed
+       if (!slug) return; 
 
        try {
          const allContent = await getContent();
@@ -35,24 +36,24 @@ export default function ServiceDetailPage({ params: routeParams }: ServiceDetail
          if (serviceDef) {
            const dynamicContent = allContent.servicesItems[slug] || {} as ServiceItemContentData;
            const mergedService: DisplayService = {
-             ...serviceDef, // slug, icon, category from definition
-             ...dynamicContent, // titleDe, titleEn, etc. from JSON
+             ...serviceDef, 
+             ...dynamicContent, 
            };
            setService(mergedService);
          } else {
-           setService(null); // Service definition not found
+           setService(null); 
          }
        } catch (error) {
          console.error("Failed to load service content:", error);
-         setService(null); // Error loading
+         setService(null);
        }
      }
      
      loadServiceContent();
      
-   }, [slug]);
+   }, [slug]); // slug is now a stable dependency once resolved
   
-  // This state means the service content itself is being fetched.
+  // Skeleton loading state
   if (service === undefined) { 
     return (
       <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,7 +62,7 @@ export default function ServiceDetailPage({ params: routeParams }: ServiceDetail
              <Skeleton className="h-8 w-8 rounded-full" />
              <Skeleton className="h-10 w-3/4" />
          </div>
-         <Skeleton className="w-full aspect-[16/9] rounded-lg mb-6" /> {/* Use aspect ratio */}
+         <Skeleton className="w-full aspect-[16/9] rounded-lg mb-6" />
          <div className="space-y-3">
              <Skeleton className="h-4 w-full" />
              <Skeleton className="h-4 w-full" />
@@ -76,10 +77,12 @@ export default function ServiceDetailPage({ params: routeParams }: ServiceDetail
     );
   }
 
-  if (!service) { // Service definition or content not found after attempting to load
+  // Service not found state
+  if (!service) { 
     notFound();
   }
 
+  // Derive content based on language
   const title = language === 'en' ? service.titleEn : service.titleDe;
   const detailedDescription = language === 'en' ? service.detailedDescriptionEn : service.detailedDescriptionDe;
 
@@ -98,19 +101,19 @@ export default function ServiceDetailPage({ params: routeParams }: ServiceDetail
       </Button>
 
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-3">
-         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary flex-shrink-0' })}
+         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary flex-shrink-0', priority: true })}
          {title}
       </h1>
 
-       <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg shadow-md"> {/* Consistent aspect ratio */}
+       <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg shadow-md">
          <Image
-           src={service.imageUrl || "https://picsum.photos/1280/720"} // Fallback image
+           src={service.imageUrl || "https://picsum.photos/1280/720"}
            alt={title}
            fill
-           sizes="(max-width: 896px) 100vw, 896px" // Max width of content area is 4xl (896px)
+           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 896px" // Max-width of content is 4xl (896px)
            style={{ objectFit: 'cover' }}
-           data-ai-hint={service.imageHint || "technology service"} // Fallback hint
-           priority // Make LCP image priority
+           data-ai-hint={service.imageHint || "technology service"}
+           priority // LCP image
          />
        </div>
 
@@ -128,9 +131,3 @@ export default function ServiceDetailPage({ params: routeParams }: ServiceDetail
     </div>
   );
 }
-
-// Removed generateStaticParams and generateMetadata as they are not compatible with "use client"
-// If SEO is critical for these dynamic pages, consider server-side rendering strategies
-// or pre-rendering with getStaticProps/getStaticPaths if the number of services is manageable and rarely changes.
-// For a fully client-rendered approach as implemented, metadata would typically be handled via client-side document.title updates
-// or a more complex setup using a Head manager compatible with client components.
