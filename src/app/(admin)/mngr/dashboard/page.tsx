@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -252,11 +253,10 @@ export default function AdminDashboardPage() {
 
   const handleContentChange = useCallback((
     pageKey: keyof AllContentData | 'servicesItems', 
-    field: string, 
+    field: string, // Base field name e.g., 'pageTitle', 'title'
     value: string, 
     lang?: 'de' | 'en', 
-    serviceSlug?: string,
-    serviceField?: keyof ServiceItemContentData
+    serviceSlug?: string
   ) => {
     switch (pageKey) {
       case 'home':
@@ -265,30 +265,33 @@ export default function AdminDashboardPage() {
       case 'servicesPage':
         setServicesPageContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
         break;
-      case 'servicesItems':
-        if (serviceSlug && serviceField) {
-          setServicesItemsContent(prev => ({
-            ...prev,
-            [serviceSlug]: {
-              ...(prev[serviceSlug] || {}),
-              [field + (lang ? `_${lang}` : '')]: value 
-            }
-          }));
-        } else if (serviceSlug && !lang && serviceField === 'imageHint') { 
-           setServicesItemsContent(prev => ({
-            ...prev,
-            [serviceSlug]: {
-              ...(prev[serviceSlug] || {}),
-              [serviceField]: value
-            }
-          }));
-        }
-        break;
       case 'howItWorks':
         setHowItWorksContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
         break;
       case 'contact':
-        setContactContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
+        if (field === 'phoneInfoNumber' && !lang) {
+             setContactContent(prev => ({ ...prev, [field]: value }));
+        } else {
+             setContactContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
+        }
+        break;
+      case 'servicesItems':
+        if (serviceSlug && field) {
+          let keyToUpdate: string;
+          if (lang) { // Bilingual field for servicesItems: titleDe, descriptionEn etc.
+            const capitalizedLang = lang.charAt(0).toUpperCase() + lang.slice(1); // 'de' -> 'De'
+            keyToUpdate = field + capitalizedLang; // e.g. titleDe, descriptionEn
+          } else { // Single language field for servicesItems: imageUrl, imageHint
+            keyToUpdate = field; // e.g. imageUrl, imageHint
+          }
+          setServicesItemsContent(prev => ({
+            ...prev,
+            [serviceSlug]: {
+              ...(prev[serviceSlug] || {}),
+              [keyToUpdate]: value
+            }
+          }));
+        }
         break;
     }
   }, []);
@@ -321,45 +324,46 @@ export default function AdminDashboardPage() {
   
   const renderBilingualField = (
     pageKey: 'home' | 'servicesPage' | 'howItWorks' | 'contact' | 'servicesItems',
-    fieldName: string, 
+    fieldName: string, // This is the base name, e.g., "pageTitle", "title"
     label: string,
     isTextarea = false,
     serviceSlug?: string 
   ) => {
-    const fieldBase = fieldName; 
-    const idDe = `${pageKey}-${serviceSlug || ''}-${fieldBase}-de`;
-    const idEn = `${pageKey}-${serviceSlug || ''}-${fieldBase}-en`;
+    const idDe = `${pageKey}-${serviceSlug || ''}-${fieldName}-de`;
+    const idEn = `${pageKey}-${serviceSlug || ''}-${fieldName}-en`;
 
     let valueDe: string = '';
     let valueEn: string = '';
 
-    if (pageKey === 'home') {
-        valueDe = (homeContent as any)[`${fieldBase}_de`] || '';
-        valueEn = (homeContent as any)[`${fieldBase}_en`] || '';
-    } else if (pageKey === 'servicesPage') {
-        valueDe = (servicesPageContent as any)[`${fieldBase}_de`] || '';
-        valueEn = (servicesPageContent as any)[`${fieldBase}_en`] || '';
-    } else if (pageKey === 'howItWorks') {
-        valueDe = (howItWorksContent as any)[`${fieldBase}_de`] || '';
-        valueEn = (howItWorksContent as any)[`${fieldBase}_en`] || '';
-    } else if (pageKey === 'contact') {
-        valueDe = (contactContent as any)[`${fieldBase}_de`] || '';
-        valueEn = (contactContent as any)[`${fieldBase}_en`] || '';
-    } else if (pageKey === 'servicesItems' && serviceSlug) {
+    if (pageKey === 'servicesItems' && serviceSlug) {
         const itemContent = servicesItemsContent[serviceSlug];
         if (itemContent) {
-            valueDe = (itemContent as any)[`${fieldBase}_de`] || '';
-            valueEn = (itemContent as any)[`${fieldBase}_en`] || '';
+            // For servicesItems, keys are like titleDe, titleEn
+            valueDe = (itemContent as any)[`${fieldName}De`] || '';
+            valueEn = (itemContent as any)[`${fieldName}En`] || '';
         }
+    } else if (pageKey === 'home') {
+        valueDe = (homeContent as any)[`${fieldName}_de`] || '';
+        valueEn = (homeContent as any)[`${fieldName}_en`] || '';
+    } else if (pageKey === 'servicesPage') {
+        valueDe = (servicesPageContent as any)[`${fieldName}_de`] || '';
+        valueEn = (servicesPageContent as any)[`${fieldName}_en`] || '';
+    } else if (pageKey === 'howItWorks') {
+        valueDe = (howItWorksContent as any)[`${fieldName}_de`] || '';
+        valueEn = (howItWorksContent as any)[`${fieldName}_en`] || '';
+    } else if (pageKey === 'contact') {
+         // Assuming all bilingual contact fields use _de/_en, phoneInfoNumber is handled by renderSingleLanguageField
+        valueDe = (contactContent as any)[`${fieldName}_de`] || '';
+        valueEn = (contactContent as any)[`${fieldName}_en`] || '';
     }
     
     const onChangeDe = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
-      handleContentChange(pageKey, fieldBase, e.target.value, 'de', serviceSlug, fieldBase as keyof ServiceItemContentData);
+      handleContentChange(pageKey, fieldName, e.target.value, 'de', serviceSlug);
     const onChangeEn = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
-      handleContentChange(pageKey, fieldBase, e.target.value, 'en', serviceSlug, fieldBase as keyof ServiceItemContentData);
+      handleContentChange(pageKey, fieldName, e.target.value, 'en', serviceSlug);
 
     return (
-      <div key={`${pageKey}-${serviceSlug || ''}-${fieldBase}`} className="space-y-4 py-2">
+      <div key={`${pageKey}-${serviceSlug || ''}-${fieldName}`} className="space-y-4 py-2">
         <h4 className="font-medium col-span-full">{label}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
@@ -385,7 +389,7 @@ export default function AdminDashboardPage() {
 
    const renderSingleLanguageField = (
     pageKey: 'contact' | 'servicesItems', 
-    fieldName: string, 
+    fieldName: string, // e.g., 'phoneInfoNumber', 'imageUrl', 'imageHint'
     label: string,
     isTextarea = false,
     serviceSlug?: string 
@@ -398,8 +402,8 @@ export default function AdminDashboardPage() {
         onChangeFunc = (e) => handleContentChange('contact', fieldName, e.target.value);
     } else if (pageKey === 'servicesItems' && serviceSlug) {
         const itemContent = servicesItemsContent[serviceSlug];
-        value = (itemContent as any)?.[fieldName] || '';
-        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName , e.target.value, undefined, serviceSlug, fieldName as keyof ServiceItemContentData);
+        value = (itemContent as any)?.[fieldName] || ''; // Directly use fieldName as it is for imageUrl/imageHint
+        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName, e.target.value, undefined, serviceSlug);
     } else {
         return null; 
     }
@@ -498,7 +502,7 @@ export default function AdminDashboardPage() {
                           {renderBilingualField('servicesItems', 'detailedDescription', 'Detailed Description (HTML)', true, serviceDef.slug)}
                           {renderSingleLanguageField('servicesItems', 'imageHint', 'Image Hint (Keywords for AI)', false, serviceDef.slug)}
                           {renderSingleLanguageField('servicesItems', 'imageUrl', 'Image URL (e.g., https://picsum.photos/400/250)', false, serviceDef.slug)}
-                           <p className="text-sm text-muted-foreground">Icon: {serviceDef.icon.props.className.match(/lucide-\w+/)?.[0].replace('lucide-','') || 'Custom Icon'} (Defined in code, not editable here)</p>
+                           <p className="text-sm text-muted-foreground">Icon: {serviceDef.icon.props.className?.match(/lucide-\w+/)?.[0].replace('lucide-','') || 'Custom Icon'} (Defined in code, not editable here)</p>
                         </AccordionContent>
                       </AccordionItem>
                     ))}
