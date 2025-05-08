@@ -1,11 +1,12 @@
+
 'use client';
 
-import React, { useEffect, useState, use } from 'react'; // Ensure 'use' is imported
+import React, { useEffect, useState, use } from 'react'; 
 import { notFound } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { allServices as serviceDefinitions } from '@/lib/services-data';
 import Image from "next/image";
-import { ArrowLeft, Heart } from 'lucide-react'; // Heart was added for LCP, keep it
+import { ArrowLeft } from 'lucide-react'; 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,17 +14,17 @@ import { getContent } from '@/actions/content-actions';
 import type { DisplayService, ServiceItemContentData } from '@/lib/content-types';
 
 interface ServiceDetailPageProps {
-  params: { slug: string }; // Next.js types this as the resolved shape, but passes a promise to client components
+  params: { slug: string }; 
 }
 
-// The prop `params` (renamed to `paramsPromise` here for clarity) is the promise.
+
 export default function ServiceDetailPage({ params: paramsPromise }: ServiceDetailPageProps) {
-   // Use React.use to unwrap the params promise
    const routeParams = use(paramsPromise);
-   const { slug } = routeParams; // Now slug can be safely accessed
+   const { slug } = routeParams; 
+
 
    const { language } = useLanguage();
-   const [service, setService] = useState<DisplayService | null | undefined>(undefined);
+   const [service, setService] = useState<DisplayService | null | undefined>(undefined); 
 
    useEffect(() => {
      async function loadServiceContent() {
@@ -51,9 +52,9 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
      
      loadServiceContent();
      
-   }, [slug]); // slug is now a stable dependency once resolved
+   }, [slug]); 
   
-  // Skeleton loading state
+  
   if (service === undefined) { 
     return (
       <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,12 +78,12 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
     );
   }
 
-  // Service not found state
+  
   if (!service) { 
     notFound();
   }
 
-  // Derive content based on language
+  
   const title = language === 'en' ? service.titleEn : service.titleDe;
   const detailedDescription = language === 'en' ? service.detailedDescriptionEn : service.detailedDescriptionDe;
 
@@ -93,7 +94,7 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
 
   return (
     <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Button variant="outline" asChild className="mb-4">
+      <Button variant="outline" asChild className="mb-4 print:hidden">
         <Link href="/services">
           <ArrowLeft className="mr-2 h-4 w-4" />
           {translations.backButton}
@@ -101,7 +102,7 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
       </Button>
 
       <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-3">
-         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary flex-shrink-0', priority: true })}
+         {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 text-primary flex-shrink-0' })}
          {title}
       </h1>
 
@@ -110,10 +111,10 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
            src={service.imageUrl || "https://picsum.photos/1280/720"}
            alt={title}
            fill
-           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 896px" // Max-width of content is 4xl (896px)
+           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 896px" 
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint || "technology service"}
-           priority // LCP image
+           priority 
          />
        </div>
 
@@ -123,7 +124,7 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
        />
 
 
-       <div className="pt-6 border-t mt-8">
+       <div className="pt-6 border-t mt-8 print:hidden">
          <Button size="lg" asChild className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
             <Link href="/contact">{translations.contactButton}</Link>
          </Button>
@@ -131,3 +132,6 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
     </div>
   );
 }
+
+// Removed generateMetadata and generateStaticParams as they are not compatible with "use client"
+// Metadata should be handled in a parent layout or potentially via client-side updates if needed.

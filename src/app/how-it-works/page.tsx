@@ -1,3 +1,4 @@
+
 'use client'; 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,12 +32,12 @@ export default function HowItWorksPage() {
 
   if (isLoading || !content) {
     return (
-      <div className="space-y-10 md:space-y-12 lg:space-y-16">
-        <section className="text-center px-4">
+      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+        <section className="text-center px-4 mb-10 md:mb-12 lg:mb-16">
           <Skeleton className="h-10 w-1/2 mx-auto mb-4" />
           <Skeleton className="h-6 w-3/4 mx-auto" />
         </section>
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-12 lg:mb-16">
           {[...Array(6)].map((_, i) => <InfoCardSkeleton key={i} />)}
         </section>
         <section className="text-center py-10 md:py-12 lg:py-16 bg-secondary rounded-lg shadow-md mt-10 md:mt-12 px-4">
@@ -71,15 +72,15 @@ export default function HowItWorksPage() {
   };
 
   return (
-    <div className="space-y-10 md:space-y-12 lg:space-y-16">
-      <section className="text-center px-4">
+    <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+      <section className="text-center px-4 mb-10 md:mb-12 lg:mb-16">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
         <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
           {translations.pageDescription}
         </p>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-12 lg:mb-16">
         <InfoCard
           icon={<Heart className="text-primary h-6 w-6" />}
           title={translations.volunteerTitle}
@@ -125,7 +126,7 @@ export default function HowItWorksPage() {
          <p className="text-muted-foreground mb-6 max-w-md md:max-w-xl lg:max-w-2xl mx-auto">
            {translations.ctaDescription}
          </p>
-         <Button asChild size="lg" variant="default" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+         <Button asChild size="lg" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
            <Link href="/contact">{translations.ctaButton}</Link>
          </Button>
        </section>
@@ -168,3 +169,4 @@ function InfoCardSkeleton() {
     </Card>
   );
 }
+
