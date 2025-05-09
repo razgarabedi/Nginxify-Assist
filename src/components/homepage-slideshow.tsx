@@ -108,31 +108,26 @@ const HomepageSlideshow: FC = () => {
 
 
   const goToPrevious = useCallback(() => {
-    const isFirstSlide = currentIndex === 0;
-    const newIndex = isFirstSlide ? slidesData.length - 1 : currentIndex - 1;
-    setCurrentIndex(newIndex);
-  }, [currentIndex]);
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
+  }, []);
 
   const goToNext = useCallback(() => {
-    const isLastSlide = currentIndex === slidesData.length - 1;
-    const newIndex = isLastSlide ? 0 : currentIndex + 1;
-    setCurrentIndex(newIndex);
-  }, [currentIndex]);
+    setCurrentIndex((prevIndex) => (prevIndex === slidesData.length - 1 ? 0 : prevIndex + 1));
+  }, []);
 
   const goToSlide = (slideIndex: number) => {
     setCurrentIndex(slideIndex);
   };
 
   useEffect(() => {
-    if (!isMounted) return; // Don't start interval if not mounted
+    if (!isMounted) return; 
     const timer = setTimeout(goToNext, AUTOPLAY_INTERVAL);
     return () => clearTimeout(timer);
   }, [currentIndex, goToNext, isMounted]);
 
   if (!isMounted) {
-    // Placeholder or null during SSR to avoid hydration issues if language causes mismatch
     return (
-        <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+        <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
            <div className="text-center p-4 md:p-8">
              {/* Simplified skeleton for SSR/initial load */}
            </div>
@@ -143,7 +138,7 @@ const HomepageSlideshow: FC = () => {
   const currentSlide = slidesData[currentIndex];
 
   return (
-    <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
+    <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
       {slidesData.map((slide, index) => (
         <div
           key={slide.id}
@@ -159,12 +154,13 @@ const HomepageSlideshow: FC = () => {
             style={{ objectFit: 'cover' }}
             priority={index === 0} 
             data-ai-hint={slide.imageHint}
-            sizes="100vw" // Simplified sizes, as aspect ratio is fixed
+            sizes="100vw" 
           />
         </div>
       ))}
       
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/20"></div>
+
 
       <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6 sm:p-8 md:p-12 lg:p-16 z-20 pb-16 md:pb-20">
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight drop-shadow-lg">
