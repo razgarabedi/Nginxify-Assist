@@ -102,6 +102,8 @@ const HomepageSlideshow: FC = () => {
   useEffect(() => {
     setIsMounted(true);
     // Set language based on HTML lang attribute after mount
+    // This part depends on how language is globally managed. Assuming a global context or prop.
+    // For now, we'll default to 'de' or detect from html lang if possible.
     const currentLang = document.documentElement.lang || 'de';
     setTexts(slideTexts[currentLang as 'de' | 'en'] || slideTexts.de);
   }, []);
@@ -126,10 +128,12 @@ const HomepageSlideshow: FC = () => {
   }, [currentIndex, goToNext, isMounted]);
 
   if (!isMounted) {
+    // Return a simple placeholder or skeleton for SSR / initial load to avoid layout shift
     return (
         <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+           {/* Placeholder content can be a simple div or a more elaborate skeleton */}
            <div className="text-center p-4 md:p-8">
-             {/* Simplified skeleton for SSR/initial load */}
+             {/* Basic skeleton for text block */}
            </div>
         </section>
     );
@@ -149,24 +153,26 @@ const HomepageSlideshow: FC = () => {
         >
           <Image
             src={slide.imageUrl}
-            alt={texts[slide.altText as keyof SlideTextContent] || slide.altText}
+            alt={texts[slide.altText as keyof SlideTextContent] || slide.altText} // Use translated alt text if available
             fill
             style={{ objectFit: 'cover' }}
-            priority={index === 0} 
+            priority={index === 0} // Prioritize loading for the first slide
             data-ai-hint={slide.imageHint}
-            sizes="100vw" 
+            sizes="100vw" // Simplest for full-width hero, can be refined
           />
         </div>
       ))}
       
+      {/* Dark gradient overlay for text contrast */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/20"></div>
 
 
+      {/* Text content and CTA */}
       <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6 sm:p-8 md:p-12 lg:p-16 z-20 pb-16 md:pb-20">
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight drop-shadow-lg">
           {texts[currentSlide.titleKey]}
         </h2>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-neutral-200 mb-5 sm:mb-6 md:mb-8 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto drop-shadow-md">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-5 sm:mb-6 md:mb-8 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto drop-shadow-lg">
           {texts[currentSlide.descriptionKey]}
         </p>
         {currentSlide.ctaTextKey && currentSlide.ctaLink && texts[currentSlide.ctaTextKey] && (
@@ -176,6 +182,7 @@ const HomepageSlideshow: FC = () => {
         )}
       </div>
 
+      {/* Navigation Arrows */}
       <Button
         variant="ghost"
         size="icon"
@@ -195,6 +202,7 @@ const HomepageSlideshow: FC = () => {
         <ChevronRight className="h-6 w-6 md:h-7 md:w-7" />
       </Button>
 
+      {/* Dot Indicators */}
       <div className="absolute bottom-4 sm:bottom-5 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2">
         {slidesData.map((_, slideIndex) => (
           <button
