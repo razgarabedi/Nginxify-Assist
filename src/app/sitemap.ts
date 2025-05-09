@@ -6,9 +6,12 @@ import { allServices } from '@/lib/services-data';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // Replace with your actual domain
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const allContentData = await getContent();
+  // getContent is called to ensure content.json is potentially created if it doesn't exist,
+  // though its direct output (allContentData) isn't used for generating service slugs here,
+  // as service slugs are statically defined in services-data.tsx.
+  await getContent();
 
-  const staticPages = [
+  const staticPages: MetadataRoute.Sitemap = [
     { url: `${BASE_URL}/`, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${BASE_URL}/services`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE_URL}/how-it-works`, changeFrequency: 'monthly', priority: 0.7 },
@@ -16,30 +19,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Add other static pages if any
   ];
 
-  const servicePageEntries = allServices.map(service => ({
+  const servicePageEntries: MetadataRoute.Sitemap = allServices.map(service => ({
     url: `${BASE_URL}/services/${service.slug}`,
-    changeFrequency: 'monthly',
+    changeFrequency: 'monthly', // Content for these pages might change if edited in admin
     priority: 0.7,
-    // lastModified: new Date(), // Optionally add if you track modifications
+    // lastModified: new Date(), // Consider adding if you track modification dates for service content
   }));
-
-  // Assuming your content.json structure allows determining last modification,
-  // or you can use a default date. For simplicity, not adding lastModified for now.
-
-  // Create alternate language entries if your site supports distinct URLs per language
-  // For this example, we assume the same URL serves content based on client-side language preference,
-  // so hreflang tags in metadata are more appropriate than separate sitemap entries per language.
-  // If you had /en/contact, /de/contact, you would add them here.
-
-  // Example of how you might add localized URLs if they existed:
-  // const localizedStaticPages = staticPages.flatMap(page => [
-  //   { ...page, url: page.url.replace(BASE_URL, `${BASE_URL}/de`) }, // if /de prefix exists
-  //   { ...page, url: page.url.replace(BASE_URL, `${BASE_URL}/en`) }, // if /en prefix exists
-  // ]);
-
 
   return [
     ...staticPages,
     ...servicePageEntries,
   ];
 }
+
