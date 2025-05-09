@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { FC } from 'react';
@@ -8,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { SlideContentData } from '@/lib/content-types'; // Import the shared type
+import type { SlideContentData } from '@/lib/content-types'; 
 import { useLanguage } from '@/context/language-context';
 
 const AUTOPLAY_INTERVAL = 7000; // 7 seconds
@@ -47,7 +46,7 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
 
   if (!isMounted || slides.length === 0) {
     return (
-        <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+        <section className="relative w-full aspect-[16/7] sm:aspect-[16/8] md:aspect-[16/7] lg:aspect-[16/6] xl:aspect-[16/5] min-h-[350px] sm:min-h-[400px] md:min-h-[450px] lg:min-h-[500px] xl:min-h-[550px] max-h-[700px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
            <div className="text-center p-4 md:p-8">
             <div className="animate-pulse">
                 <div className="h-10 w-3/4 sm:h-12 md:w-2/3 mx-auto mb-4 sm:mb-6 bg-muted-foreground/20 rounded-md"></div>
@@ -67,7 +66,7 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
 
 
   return (
-    <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
+    <section className="relative w-full aspect-[16/7] sm:aspect-[16/8] md:aspect-[16/7] lg:aspect-[16/6] xl:aspect-[16/5] min-h-[350px] sm:min-h-[400px] md:min-h-[450px] lg:min-h-[500px] xl:min-h-[550px] max-h-[700px] overflow-hidden rounded-xl shadow-2xl group">
       {slides.map((slide, index) => (
         <div
           key={slide.id || index}
@@ -83,19 +82,19 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
             style={{ objectFit: 'cover' }}
             priority={index === 0} 
             data-ai-hint={slide.imageHint}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw" 
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1600px"
           />
         </div>
       ))}
       
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent sm:bg-gradient-to-t sm:from-black/60 sm:via-black/30 sm:to-transparent md:bg-gradient-to-r md:from-black/50 md:to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent md:bg-gradient-to-r md:from-black/50 md:via-black/25 md:to-transparent"></div>
 
-      <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-4 pb-12 sm:p-6 sm:pb-16 md:items-start md:justify-center md:text-left md:p-8 lg:p-12 xl:p-16 z-20">
-        <div className="md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-transparent p-0">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight [text-shadow:_0_2px_4px_rgb(0_0_0_/_50%)]">
+      <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-4 pb-16 sm:p-6 sm:pb-20 md:items-start md:justify-center md:text-left md:p-8 lg:p-12 xl:p-16 z-20">
+        <div className="md:max-w-md lg:max-w-lg xl:max-w-xl bg-transparent p-0">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight [text-shadow:0_2px_8px_rgba(0,0,0,0.7)]">
             {title}
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-200 mb-5 sm:mb-6 md:mb-8 [text-shadow:_0_1px_3px_rgb(0_0_0_/_40%)]">
+          <p className="text-base sm:text-lg md:text-xl text-gray-100 mb-5 sm:mb-6 md:mb-8 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)]">
             {description}
           </p>
           {ctaText && currentSlide.ctaLink && (
@@ -125,13 +124,15 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
         <ChevronRight className="h-6 w-6 md:h-7 md:w-7" />
       </Button>
 
-      <div className="absolute bottom-4 sm:bottom-5 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2">
+      <div className="absolute bottom-4 sm:bottom-5 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2.5 md:space-x-3">
         {slides.map((_, slideIndex) => (
           <button
             key={slideIndex}
             className={cn(
-              'h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3 rounded-full transition-all duration-300 ease-in-out',
-              currentIndex === slideIndex ? 'bg-primary scale-125 w-4 sm:w-5 md:w-6' : 'bg-white/60 hover:bg-white/90'
+              'rounded-full transition-all duration-300 ease-in-out focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/50', // Added focus-visible styles
+              // Increased base size for better touchability, active state scales width
+              'h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4', 
+              currentIndex === slideIndex ? 'bg-primary scale-110 w-5 sm:w-6 md:w-7' : 'bg-white/60 hover:bg-white/90'
             )}
             onClick={() => goToSlide(slideIndex)}
             aria-label={`Go to slide ${slideIndex + 1}`}
@@ -143,4 +144,3 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
 };
 
 export default HomepageSlideshow;
-

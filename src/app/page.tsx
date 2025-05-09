@@ -1,4 +1,3 @@
-
 'use client'; 
 
 import Link from 'next/link';
@@ -37,7 +36,7 @@ export default function Home() {
     return (
       <div className="space-y-12 md:space-y-16 lg:space-y-20">
         {/* Slideshow Skeleton */}
-         <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+         <section className="relative w-full aspect-[16/7] sm:aspect-[16/8] md:aspect-[16/7] lg:aspect-[16/6] xl:aspect-[16/5] min-h-[350px] sm:min-h-[400px] md:min-h-[450px] lg:min-h-[500px] xl:min-h-[550px] max-h-[700px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
            <div className="text-center p-4 md:p-8">
             <div className="animate-pulse">
                 <div className="h-10 w-3/4 sm:h-12 md:w-2/3 mx-auto mb-4 sm:mb-6 bg-muted-foreground/20 rounded-md"></div>
@@ -78,8 +77,6 @@ export default function Home() {
   }
 
   const translations = {
-      requestHelpButton: language === 'en' ? content.requestHelpButton_en : content.requestHelpButton_de,
-      learnMoreButton: language === 'en' ? content.learnMoreButton_en : content.learnMoreButton_de,
       clubsTitle: language === 'en' ? content.clubsTitle_en : content.clubsTitle_de,
       clubsDescription: language === 'en' ? content.clubsDescription_en : content.clubsDescription_de,
       clubsText: language === 'en' ? content.clubsText_en : content.clubsText_de,
@@ -110,7 +107,7 @@ export default function Home() {
             <p className="mb-5 text-muted-foreground flex-grow text-base leading-relaxed">
              {translations.clubsText}
             </p>
-            <Button variant="link" asChild className="px-0 self-start mt-auto text-primary hover:text-primary/80 font-semibold text-base group">
+            <Button variant="link" asChild className="px-1 py-1 self-start mt-auto text-primary hover:text-primary/80 font-semibold text-base group">
               <Link href="/services#vereine">{translations.viewDetailsButton} <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-1 transition-transform"/></Link>
             </Button>
           </CardContent>
@@ -128,7 +125,7 @@ export default function Home() {
             <p className="mb-5 text-muted-foreground flex-grow text-base leading-relaxed">
              {translations.individualsText}
             </p>
-             <Button variant="link" asChild className="px-0 self-start mt-auto text-primary hover:text-primary/80 font-semibold text-base group">
+             <Button variant="link" asChild className="px-1 py-1 self-start mt-auto text-primary hover:text-primary/80 font-semibold text-base group">
               <Link href="/services#privatpersonen">{translations.viewDetailsButton} <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-1 transition-transform"/></Link>
             </Button>
           </CardContent>
