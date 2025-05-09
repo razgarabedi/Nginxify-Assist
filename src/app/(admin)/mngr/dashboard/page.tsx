@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/(admin)/contexts/auth-context';
-import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
+import { Button, buttonVariants } from '@/components/ui/button'; 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,8 +12,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogOut, Save, FileText, HomeIcon, SettingsIcon, MailIcon, Briefcase, ImagesIcon, Trash2, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils'; // Import cn for combining classNames
+import { Loader2, LogOut, Save, HomeIcon, SettingsIcon, MailIcon, Briefcase, ImagesIcon, Trash2, PlusCircle } from 'lucide-react';
+import { cn } from '@/lib/utils'; 
 
 import { allServices as serviceDefinitions, type Service as ServiceDefinition } from '@/lib/services-data';
 import { 
@@ -28,123 +28,17 @@ import {
   type SlideContentData
 } from '@/actions/content-actions';
 
-// Import initial data getters from the new utility file
 import { 
-  getInitialHomeContent as getInitialHomeData, 
-  getInitialSlideshowData 
+  getInitialHomeContent, 
+  getInitialSlideshowData,
+  getInitialServicesPageContent,
+  getInitialHowItWorksContent,
+  getInitialContactContent
 } from '@/lib/default-content-getters';
 
 
-const getInitialServicesPageData = (): ServicesPageData => ({
-  pageTitle_de: 'Unsere Leistungen',
-  pageTitle_en: 'Our Services',
-  pageDescription_de: 'Wir bieten ehrenamtliche IT-Unterstützung für gemeinnützige Organisationen und Privatpersonen. Unser Fokus liegt auf grundlegender Hilfe und Beratung.',
-  pageDescription_en: 'We offer volunteer IT support for non-profit organizations and individuals. Our focus is on basic help and advice.',
-  clubSectionTitle_de: 'Für Vereine & Organisationen',
-  clubSectionTitle_en: 'For Clubs & Organizations',
-  clubSectionDescription_de: 'Wir unterstützen gemeinnützige Vereine und Organisationen dabei, ihre digitale Präsenz aufzubauen und grundlegende IT-Herausforderungen zu meistern. Bitte beachten Sie, dass wir keine komplexen, professionellen Großprojekte übernehmen können.',
-  clubSectionDescription_en: 'We support non-profit clubs and organizations in building their digital presence and overcoming basic IT challenges. Please note that we cannot take on complex, professional large-scale projects.',
-  individualSectionTitle_de: 'Für Privatpersonen',
-  individualSectionTitle_en: 'For Individuals',
-  individualSectionDescription_de: 'Wir helfen Ihnen bei alltäglichen IT-Problemen und Fragen rund um Computer, Smartphone und Internet.',
-  individualSectionDescription_en: 'We help you with everyday IT problems and questions about computers, smartphones, and the internet.',
-});
-
-// This will be for display structure, text comes from servicesItemsContent
 const getInitialDisplayServices = (): ServiceDefinition[] => JSON.parse(JSON.stringify(serviceDefinitions));
 
-const getInitialHowItWorksData = (): HowItWorksContentData => ({
-  pageTitle_de: 'So Funktioniert\'s',
-  pageTitle_en: 'How It Works',
-  pageDescription_de: 'Erfahren Sie mehr über unser ehrenamtliches Modell, wie Sie Hilfe anfordern können und was Sie erwarten können.',
-  pageDescription_en: 'Learn more about our volunteer model, how to request help, and what to expect.',
-  volunteerTitle_de: 'Ehrenamtliches Engagement',
-  volunteerTitle_en: 'Volunteer Commitment',
-  volunteerDescription_de: 'Unsere Hilfe wird von Freiwilligen geleistet, die ihre IT-Kenntnisse und Zeit zur Verfügung stellen, um anderen zu helfen. Wir sind eine Gemeinschaft von Technikbegeisterten, die Gutes tun wollen.',
-  volunteerDescription_en: 'Our help is provided by volunteers who offer their IT skills and time to help others. We are a community of tech enthusiasts wanting to do good.',
-  costTitle_de: 'Kostenlos & Spendenbasiert',
-  costTitle_en: 'Free & Donation-Based',
-  costDescription_de: 'Unsere grundlegende Unterstützung ist kostenlos. Freiwillige Spenden sind willkommen und helfen uns, eventuelle Kosten zu decken und die Initiative am Laufen zu halten. Es besteht jedoch keine Verpflichtung zur Spende.',
-  costDescription_en: 'Our basic support is free. Voluntary donations are welcome and help us cover any costs and keep the initiative running. However, there is no obligation to donate.',
-  requestTitle_de: 'Hilfe Anfordern',
-  requestTitle_en: 'Requesting Help',
-  requestDescriptionPart1_de: 'Der einfachste Weg, Unterstützung anzufragen, ist über unser ',
-  requestDescriptionPart1_en: 'The easiest way to request support is via our ',
-  requestDescriptionLink_de: 'Kontaktformular',
-  requestDescriptionLink_en: 'Contact Form',
-  requestDescriptionPart2_de: ' oder per E-Mail. Beschreiben Sie Ihr Anliegen möglichst genau, damit wir Ihre Anfrage besser einschätzen können.',
-  requestDescriptionPart2_en: ' or by email. Please describe your issue as accurately as possible so we can better assess your request.',
-  expectationTitle_de: 'Erwartungsmanagement',
-  expectationTitle_en: 'Expectation Management',
-  expectationDescription_de: 'Da wir ehrenamtlich tätig sind, erfolgt die Hilfe nach Verfügbarkeit unserer Freiwilligen. Wir bemühen uns, zeitnah zu antworten, bitten aber um Verständnis, wenn es manchmal etwas dauern kann. Wir können nicht garantieren, jedes Problem lösen zu können, geben aber unser Bestes.',
-  expectationDescription_en: 'As we operate on a volunteer basis, help is provided based on the availability of our volunteers. We strive to respond promptly but ask for your understanding if it sometimes takes a little longer. We cannot guarantee to solve every problem, but we do our best.',
-  whoTitle_de: 'Wer wir sind',
-  whoTitle_en: 'Who We Are',
-  whoDescription_de: 'Wir sind eine Gruppe von IT-interessierten Einzelpersonen, die ihre Fähigkeiten nutzen möchten, um gemeinnützigen Organisationen und Privatpersonen bei technischen Herausforderungen unter die Arme zu greifen.',
-  whoDescription_en: 'We are a group of IT-interested individuals who want to use our skills to help non-profit organizations and individuals with technical challenges.',
-  donationsTitle_de: 'Spendenverwendung (Optional)',
-  donationsTitle_en: 'Use of Donations (Optional)',
-  donationsDescription_de: 'Falls Spenden eingehen, werden diese transparent zur Deckung von Betriebskosten (z.B. Hosting der Webseite) oder zur Unterstützung spezifischer gemeinnütziger IT-Projekte verwendet.',
-  donationsDescription_en: 'If donations are received, they will be used transparently to cover operating costs (e.g., website hosting) or to support specific non-profit IT projects.',
-  ctaTitle_de: 'Bereit, Hilfe anzufragen?',
-  ctaTitle_en: 'Ready to Request Help?',
-  ctaDescription_de: 'Füllen Sie unser Kontaktformular aus oder schreiben Sie uns eine E-Mail. Wir freuen uns darauf, von Ihnen zu hören!',
-  ctaDescription_en: 'Fill out our contact form or send us an email. We look forward to hearing from you!',
-  ctaButton_de: 'Jetzt Kontakt aufnehmen',
-  ctaButton_en: 'Contact Us Now',
-});
-
-const getInitialContactData = (): ContactContentData => ({
-  pageTitle_de: 'Kontaktieren Sie Uns',
-  pageTitle_en: 'Contact Us',
-  pageDescription_de: 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.',
-  pageDescription_en: 'Have a question or need IT support? Fill out the form or send us an email.',
-  formTitle_de: 'Anfrageformular',
-  formTitle_en: 'Inquiry Form',
-  alertTitle_de: 'Wichtige Informationen für Ihre Anfrage',
-  alertTitle_en: 'Important Information for Your Request',
-  alertDescription_de: 'Um Ihnen bestmöglich helfen zu können, beschreiben Sie Ihr Problem bitte so detailliert wie möglich. Geben Sie bei technischen Problemen bitte auch Informationen zu Ihrem Gerät (z.B. Betriebssystem, Modell) an, falls relevant.',
-  alertDescription_en: 'To help us assist you best, please describe your problem in as much detail as possible. For technical issues, please also provide information about your device (e.g., operating system, model) if relevant.',
-  nameLabel_de: 'Name',
-  nameLabel_en: 'Name',
-  namePlaceholder_de: 'Ihr Name',
-  namePlaceholder_en: 'Your Name',
-  emailLabel_de: 'E-Mail',
-  emailLabel_en: 'Email',
-  emailPlaceholder_de: 'ihre@email.de',
-  emailPlaceholder_en: 'your@email.com',
-  subjectLabel_de: 'Betreff',
-  subjectLabel_en: 'Subject',
-  subjectPlaceholder_de: 'Worum geht es?',
-  subjectPlaceholder_en: 'What is it about?',
-  messageLabel_de: 'Ihre Nachricht / Problembeschreibung',
-  messageLabel_en: 'Your Message / Problem Description',
-  messagePlaceholder_de: 'Beschreiben Sie Ihr Anliegen...',
-  messagePlaceholder_en: 'Describe your concern...',
-  messageDescription_de: 'Je detaillierter, desto besser können wir helfen.',
-  messageDescription_en: 'The more detailed, the better we can help.',
-  techDetailsLabel_de: 'Technische Details (Optional)',
-  techDetailsLabel_en: 'Technical Details (Optional)',
-  techDetailsPlaceholder_de: 'z.B. Betriebssystem, Gerätemodell, verwendete Software...',
-  techDetailsPlaceholder_en: 'e.g., Operating system, device model, software used...',
-  techDetailsDescription_de: 'Falls relevant für Ihr Problem.',
-  techDetailsDescription_en: 'If relevant to your problem.',
-  submitButton_de: 'Anfrage Senden',
-  submitButton_en: 'Send Request',
-  directContactTitle_de: 'Direkter Kontakt',
-  directContactTitle_en: 'Direct Contact',
-  emailInfoTitle_de: 'E-Mail',
-  emailInfoTitle_en: 'Email',
-  emailInfoText_de: 'Sie können uns auch direkt eine E-Mail schreiben:',
-  emailInfoText_en: 'You can also email us directly:',
-  emailInfoHint_de: 'Bitte geben Sie auch hier möglichst viele Details zu Ihrem Anliegen an.',
-  emailInfoHint_en: 'Please provide as many details as possible about your concern here as well.',
-  phoneInfoTitle_de: 'Telefon',
-  phoneInfoTitle_en: 'Phone',
-  phoneInfoText_de: 'Erreichen Sie uns während der Geschäftszeiten:',
-  phoneInfoText_en: 'Reach us during business hours:',
-  phoneInfoNumber: '+49 123 456789',
-});
 
 export default function AdminDashboardPage() {
   const { isAuthenticated, logout, isLoading: authIsLoading } = useAuth();
@@ -153,16 +47,16 @@ export default function AdminDashboardPage() {
 
   const [homeContent, setHomeContent] = useState<Omit<HomeContentData, 'slideshowItems'>>(
     () => {
-      const initialHome = getInitialHomeData();
+      const initialHome = getInitialHomeContent();
       const { slideshowItems, ...rest } = initialHome;
       return rest;
     }
   );
   const [slideshowItems, setSlideshowItems] = useState<SlideContentData[]>(() => getInitialSlideshowData());
-  const [servicesPageContent, setServicesPageContent] = useState<ServicesPageData>(getInitialServicesPageData);
+  const [servicesPageContent, setServicesPageContent] = useState<ServicesPageData>(getInitialServicesPageContent);
   const [servicesItemsContent, setServicesItemsContent] = useState<Record<string, ServiceItemContentData>>({});
-  const [howItWorksContent, setHowItWorksContent] = useState<HowItWorksContentData>(getInitialHowItWorksData);
-  const [contactContent, setContactContent] = useState<ContactContentData>(getInitialContactData);
+  const [howItWorksContent, setHowItWorksContent] = useState<HowItWorksContentData>(getInitialHowItWorksContent);
+  const [contactContent, setContactContent] = useState<ContactContentData>(getInitialContactContent);
   
   const [displayServices, setDisplayServices] = useState<ServiceDefinition[]>(getInitialDisplayServices);
 
@@ -182,16 +76,16 @@ export default function AdminDashboardPage() {
         try {
           const data = await getContent();
           
-          const defaultInitialHome = getInitialHomeData(); 
+          const defaultInitialHome = getInitialHomeContent(); 
           const defaultInitialSlides = getInitialSlideshowData();
 
-          const { slideshowItems: loadedSlideshowItems, ...loadedHomeContent } = data.home || defaultInitialHome;
-          setHomeContent(loadedHomeContent);
+          const { slideshowItems: loadedSlideshowItems, ...loadedHomeContentRest } = data.home || defaultInitialHome;
+          setHomeContent(loadedHomeContentRest);
           setSlideshowItems(loadedSlideshowItems && loadedSlideshowItems.length > 0 ? loadedSlideshowItems : defaultInitialSlides);
 
-          setServicesPageContent(data.servicesPage || getInitialServicesPageData());
-          setHowItWorksContent(data.howItWorks || getInitialHowItWorksData());
-          setContactContent(data.contact || getInitialContactData());
+          setServicesPageContent(data.servicesPage || getInitialServicesPageContent());
+          setHowItWorksContent(data.howItWorks || getInitialHowItWorksContent());
+          setContactContent(data.contact || getInitialContactContent());
 
           const finalServicesItemsContent: Record<string, ServiceItemContentData> = {};
           const finalDisplayServices: ServiceDefinition[] = [];
@@ -220,12 +114,12 @@ export default function AdminDashboardPage() {
             description: 'Could not load website content. Using defaults.',
             variant: 'destructive',
           });
-          const { slideshowItems: defaultSlides, ...defaultHome } = getInitialHomeData();
+          const { slideshowItems: defaultSlides, ...defaultHome } = getInitialHomeContent();
           setHomeContent(defaultHome);
           setSlideshowItems(defaultSlides);
-          setServicesPageContent(getInitialServicesPageData());
-          setHowItWorksContent(getInitialHowItWorksData());
-          setContactContent(getInitialContactData());
+          setServicesPageContent(getInitialServicesPageContent());
+          setHowItWorksContent(getInitialHowItWorksContent());
+          setContactContent(getInitialContactContent());
           
           const fallbackServicesItems: Record<string, ServiceItemContentData> = {};
           serviceDefinitions.forEach(s => {
@@ -372,8 +266,8 @@ export default function AdminDashboardPage() {
       onChangeEn = (e) => handleSlideshowItemChange(itemKey, `${fieldName}_en` as keyof SlideContentData, e.target.value);
     } else if (sectionKey === 'servicesItems' && typeof itemKey === 'string') {
         const itemContent = servicesItemsContent[itemKey];
-        valueDe = (itemContent as any)[`${fieldName}De`] || ''; // Corrected to match ServiceItemContentData
-        valueEn = (itemContent as any)[`${fieldName}En`] || ''; // Corrected to match ServiceItemContentData
+        valueDe = (itemContent as any)[`${fieldName}De`] || ''; 
+        valueEn = (itemContent as any)[`${fieldName}En`] || ''; 
         onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de', itemKey);
         onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en', itemKey);
     } else if (sectionKey === 'homeFields') {
@@ -672,5 +566,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    
