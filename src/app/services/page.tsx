@@ -11,12 +11,6 @@ import React, { useEffect, useState } from 'react';
 import { getContent } from '@/actions/content-actions';
 import type { ServicesPageData, DisplayService, ServiceItemContentData } from '@/lib/content-types';
 import { Skeleton } from '@/components/ui/skeleton';
-// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
-
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
-
-// Removed generateMetadata function as it's not allowed in client components.
-// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 export default function ServicesPage() {
@@ -112,7 +106,7 @@ export default function ServicesPage() {
             {translations.clubSectionDescription}
             </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6">
           {clubServices.map((service, index) => (
             <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
@@ -121,7 +115,7 @@ export default function ServicesPage() {
                   description={language === 'en' ? service.descriptionEn : service.descriptionDe}
                   imageUrl={service.imageUrl}
                   imageHint={service.imageHint}
-                  isPriority={index < 2} // Prioritize only the first 2 images for LCP
+                  isPriority={index < 2} 
                 />
             </Link>
           ))}
@@ -138,7 +132,7 @@ export default function ServicesPage() {
             {translations.individualSectionDescription}
             </p>
          </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6">
           {individualServices.map((service, index) => (
              <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
@@ -147,7 +141,7 @@ export default function ServicesPage() {
                    description={language === 'en' ? service.descriptionEn : service.descriptionDe}
                    imageUrl={service.imageUrl}
                    imageHint={service.imageHint}
-                   isPriority={index < 2 && clubServices.length === 0} // Prioritize if no club services shown above
+                   isPriority={index < 2 && clubServices.length === 0} 
                 />
              </Link>
           ))}
@@ -171,7 +165,7 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint, isPriority
 
   return (
     <Card className="overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 flex flex-col h-full bg-card dark:bg-secondary/30"> 
-       <div className="relative w-full aspect-[16/9]"> 
+       <div className="relative w-full aspect-[16/9] min-h-[180px] sm:min-h-[200px]"> 
          <Image
           src={imageUrl || placeholderImage}
           alt={title}
@@ -200,7 +194,7 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint, isPriority
 function ServiceCardSkeleton() {
   return (
     <Card className="overflow-hidden shadow-lg flex flex-col h-full bg-card dark:bg-secondary/30">
-      <Skeleton className="w-full aspect-[16/9]" />
+      <Skeleton className="w-full aspect-[16/9]  min-h-[180px] sm:min-h-[200px]" />
       <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2">
         <Skeleton className="h-6 w-6 rounded-full flex-shrink-0 mt-0.5" />
         <div className="flex-grow">
