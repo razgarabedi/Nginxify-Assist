@@ -11,13 +11,12 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      // picsum.photos is no longer used for services, keep if used elsewhere or remove
-      // {
-      //   protocol: 'https',
-      //   hostname: 'picsum.photos',
-      //   port: '',
-      //   pathname: '/**',
-      // },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
       { 
         protocol: 'https',
         hostname: 'images.unsplash.com',
@@ -34,3 +33,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

@@ -1,4 +1,3 @@
-
 {
   "home": {
     "pageTitle_de": "nginxify Hilfe: Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen",
@@ -67,6 +66,20 @@
         "ctaText_de": "Hilfe Anfragen",
         "ctaText_en": "Request Help",
         "ctaLink": "/contact"
+      },
+      {
+        "id": 4,
+        "imageUrl": "https://picsum.photos/1600/900",
+        "imageHint": "new slide",
+        "altText_de": "Neuer Slide Alt Text DE",
+        "altText_en": "New Slide Alt Text EN",
+        "title_de": "Neuer Slide Titel DE",
+        "title_en": "New Slide Title EN",
+        "description_de": "Neue Slide Beschreibung DE.",
+        "description_en": "New slide description EN.",
+        "ctaText_de": "Mehr erfahren",
+        "ctaText_en": "Learn More",
+        "ctaLink": "/"
       }
     ]
   },
@@ -258,5 +271,3 @@
     "phoneInfoNumber": "+49 123 456787"
   }
 }
-
-    
