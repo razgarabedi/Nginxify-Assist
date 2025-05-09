@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react';
 import type { HomeContentData } from '@/lib/content-types';
 import { getContent } from '@/actions/content-actions';
 import { Skeleton } from '@/components/ui/skeleton';
+import HomepageSlideshow from '@/components/homepage-slideshow';
 
 
 export default function Home() {
@@ -35,19 +36,19 @@ export default function Home() {
   if (isLoading || !content) {
     return (
       <div className="space-y-12 md:space-y-16 lg:space-y-20">
-        {/* Hero Section Skeleton */}
-        <section className="text-center py-16 md:py-24 lg:py-32 px-4 bg-card dark:bg-secondary/30 rounded-lg shadow-lg">
-          <Skeleton className="h-12 w-3/4 md:w-2/3 mx-auto mb-6" />
-          <Skeleton className="h-7 w-full max-w-3xl mx-auto mb-10" />
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-            <Skeleton className="h-12 w-40" />
-            <Skeleton className="h-12 w-52" />
-          </div>
+        {/* Slideshow Skeleton */}
+        <section className="relative w-full h-[calc(80vh-80px)] sm:h-[calc(90vh-80px)] md:h-[calc(100vh-80px)] max-h-[800px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+           <div className="text-center p-4 md:p-8">
+             <Skeleton className="h-12 w-3/4 md:w-2/3 mx-auto mb-6" />
+             <Skeleton className="h-7 w-full max-w-xl mx-auto mb-10" />
+             <Skeleton className="h-12 w-40 mx-auto" />
+           </div>
         </section>
+        
         {/* Service Previews Skeleton */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
           {[1, 2].map((i) => (
-            <Card key={`service-skel-${i}`} className="shadow-xl flex flex-col bg-card dark:bg-secondary/40">
+            <Card key={`service-skel-${i}`} className="shadow-xl flex flex-col bg-card dark:bg-secondary/40 rounded-xl">
               <CardHeader className="p-5 sm:p-6">
                 <Skeleton className="h-8 w-3/5 mb-2" />
                 <Skeleton className="h-5 w-4/5" />
@@ -72,8 +73,8 @@ export default function Home() {
   }
 
   const translations = {
-      pageTitle: language === 'en' ? content.pageTitle_en : content.pageTitle_de,
-      pageDescription: language === 'en' ? content.pageDescription_en : content.pageDescription_de,
+      // pageTitle: language === 'en' ? content.pageTitle_en : content.pageTitle_de, // Potentially replaced by slideshow
+      // pageDescription: language === 'en' ? content.pageDescription_en : content.pageDescription_de, // Potentially replaced by slideshow
       requestHelpButton: language === 'en' ? content.requestHelpButton_en : content.requestHelpButton_de,
       learnMoreButton: language === 'en' ? content.learnMoreButton_en : content.learnMoreButton_de,
       clubsTitle: language === 'en' ? content.clubsTitle_en : content.clubsTitle_de,
@@ -91,11 +92,14 @@ export default function Home() {
 
   return (
     <div className="space-y-12 md:space-y-16 lg:space-y-20">
-      <section className="text-center py-16 md:py-24 lg:py-32 px-4 sm:px-6 bg-card dark:bg-secondary/30 rounded-xl shadow-xl">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-primary">
+      <HomepageSlideshow />
+      
+      {/* Optional: Retain a smaller, focused introductory section if needed, or remove if slideshow covers it */}
+      {/* <section className="text-center py-12 md:py-16 px-4 sm:px-6">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-primary">
           {translations.pageTitle}
         </h1>
-        <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-10 max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
+        <p className="text-md sm:text-lg md:text-xl text-muted-foreground mb-8 max-w-lg md:max-w-xl lg:max-w-2xl mx-auto">
           {translations.pageDescription}
         </p>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
@@ -106,9 +110,9 @@ export default function Home() {
             <Link href="/services">{translations.learnMoreButton} <ArrowRight className="ml-2 h-5 w-5"/></Link>
           </Button>
         </div>
-      </section>
+      </section> */}
 
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10 pt-8 md:pt-0">
         <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/40 rounded-xl overflow-hidden">
           <CardHeader className="p-5 sm:p-7">
             <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl">
@@ -158,4 +162,3 @@ export default function Home() {
     </div>
   );
 }
-
