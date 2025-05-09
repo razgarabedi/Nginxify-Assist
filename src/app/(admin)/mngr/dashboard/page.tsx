@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/(admin)/contexts/auth-context';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, LogOut, Save, FileText, HomeIcon, SettingsIcon, MailIcon, Briefcase, ImagesIcon, Trash2, PlusCircle } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Import cn for combining classNames
 
 import { allServices as serviceDefinitions, type Service as ServiceDefinition } from '@/lib/services-data';
 import { 
@@ -535,15 +535,19 @@ export default function AdminDashboardPage() {
                         <AccordionTrigger className="hover:no-underline">
                           <div className="flex justify-between items-center w-full pr-2">
                             <span>Slide {index + 1}: {slide.title_en || 'New Slide'}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <div
+                              role="button"
+                              tabIndex={0}
                               onClick={(e) => { e.stopPropagation(); removeSlideshowItem(index); }}
-                              className="hover:bg-destructive/10 text-destructive hover:text-destructive"
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); removeSlideshowItem(index); }}}
+                              className={cn(
+                                buttonVariants({ variant: "ghost", size: "icon" }),
+                                "hover:bg-destructive/10 text-destructive hover:text-destructive"
+                              )}
                               aria-label="Remove slide"
                             >
                               <Trash2 className="h-4 w-4" />
-                            </Button>
+                            </div>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="space-y-4 pl-2 border-l-2 ml-2">
