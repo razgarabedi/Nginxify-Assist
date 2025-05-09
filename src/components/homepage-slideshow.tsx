@@ -96,15 +96,14 @@ const AUTOPLAY_INTERVAL = 7000; // 7 seconds
 
 const HomepageSlideshow: FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [texts, setTexts] = useState(slideTexts.de); // Default to German, will update with language context
+  const [texts, setTexts] = useState(slideTexts.de); 
+  const [isMounted, setIsMounted] = useState(false);
 
-  // This component doesn't directly use useLanguage to avoid making it a client boundary for the entire page
-  // If language selection is critical for the slideshow on initial load, page.tsx would need to pass it as a prop
-  // For simplicity, we'll assume a default or that language changes will re-render this if it's part of a larger client component tree.
-  // However, a simple way to get language for now:
   useEffect(() => {
-    const lang = document.documentElement.lang || 'de';
-    setTexts(slideTexts[lang as 'de' | 'en'] || slideTexts.de);
+    setIsMounted(true);
+    // Set language based on HTML lang attribute after mount
+    const currentLang = document.documentElement.lang || 'de';
+    setTexts(slideTexts[currentLang as 'de' | 'en'] || slideTexts.de);
   }, []);
 
 
@@ -125,14 +124,26 @@ const HomepageSlideshow: FC = () => {
   };
 
   useEffect(() => {
+    if (!isMounted) return; // Don't start interval if not mounted
     const timer = setTimeout(goToNext, AUTOPLAY_INTERVAL);
     return () => clearTimeout(timer);
-  }, [currentIndex, goToNext]);
+  }, [currentIndex, goToNext, isMounted]);
+
+  if (!isMounted) {
+    // Placeholder or null during SSR to avoid hydration issues if language causes mismatch
+    return (
+        <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+           <div className="text-center p-4 md:p-8">
+             {/* Simplified skeleton for SSR/initial load */}
+           </div>
+        </section>
+    );
+  }
 
   const currentSlide = slidesData[currentIndex];
 
   return (
-    <section className="relative w-full h-[calc(80vh-80px)] sm:h-[calc(90vh-80px)] md:h-[calc(100vh-80px)] max-h-[800px] overflow-hidden rounded-xl shadow-2xl group">
+    <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
       {slidesData.map((slide, index) => (
         <div
           key={slide.id}
@@ -148,7 +159,7 @@ const HomepageSlideshow: FC = () => {
             style={{ objectFit: 'cover' }}
             priority={index === 0} 
             data-ai-hint={slide.imageHint}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+            sizes="100vw" // Simplified sizes, as aspect ratio is fixed
           />
         </div>
       ))}
@@ -206,3 +217,4 @@ const HomepageSlideshow: FC = () => {
 };
 
 export default HomepageSlideshow;
+
