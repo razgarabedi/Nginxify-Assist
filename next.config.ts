@@ -11,23 +11,26 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
-      },
-      { // Added unsplash.com hostname
+      // picsum.photos is no longer used for services, keep if used elsewhere or remove
+      // {
+      //   protocol: 'https',
+      //   hostname: 'picsum.photos',
+      //   port: '',
+      //   pathname: '/**',
+      // },
+      { 
         protocol: 'https',
         hostname: 'images.unsplash.com',
         port: '',
         pathname: '/**',
       },
     ],
-    // Removed unoptimized: true - Let Next.js optimize images
   },
-   // Removed i18n configuration as it's handled by context now
+  env: {
+    NEXT_PUBLIC_BASE_URL: process.env.NODE_ENV === 'production' 
+      ? 'https://nginxify.com' // Replace with your actual production domain
+      : 'http://localhost:9002', // Or your development port
+  }
 };
 
 export default nextConfig;
-

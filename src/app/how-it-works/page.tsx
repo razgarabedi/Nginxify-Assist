@@ -6,10 +6,62 @@ import { Heart, Handshake, MessageSquare, Clock, Users, Gift } from 'lucide-reac
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from '@/context/language-context';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { HowItWorksContentData } from '@/lib/content-types';
 import { getContent } from '@/actions/content-actions';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Metadata, ResolvingMetadata } from 'next';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
+
+export async function generateMetadata(
+  { params, searchParams }: { params: {}; searchParams: { [key: string]: string | string[] | undefined } },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const allContent = await getContent();
+  const howItWorksContent = allContent.howItWorks;
+  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
+
+  const title = lang === 'en' ? howItWorksContent.pageTitle_en : howItWorksContent.pageTitle_de;
+  const description = lang === 'en' ? howItWorksContent.pageDescription_en : howItWorksContent.pageDescription_de;
+  const parentOpenGraph = (await parent).openGraph || {};
+  const parentTwitter = (await parent).twitter || {};
+
+  return {
+    title: title,
+    description: description,
+    alternates: {
+      canonical: '/how-it-works',
+      languages: {
+        'de-DE': `${BASE_URL}/how-it-works`,
+        'en-US': `${BASE_URL}/how-it-works?lang=en`,
+      },
+    },
+    openGraph: {
+      ...parentOpenGraph,
+      title: title,
+      description: description,
+      url: lang === 'en' ? `${BASE_URL}/how-it-works?lang=en` : `${BASE_URL}/how-it-works`,
+      images: [
+        {
+          url: `${BASE_URL}/og-how-it-works.png`, 
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+        ...(parentOpenGraph.images || []),
+      ],
+      locale: lang === 'de' ? 'de_DE' : 'en_US',
+    },
+    twitter: {
+      ...parentTwitter,
+      title: title,
+      description: description,
+      images: [`${BASE_URL}/twitter-how-it-works.png`, ...(parentTwitter.images || [])],
+    },
+  };
+}
+
 
 export default function HowItWorksPage() {
   const { language } = useLanguage();
@@ -18,6 +70,7 @@ export default function HowItWorksPage() {
 
   useEffect(() => {
     async function loadContent() {
+      setIsLoading(true);
       try {
         const allContent = await getContent();
         setContent(allContent.howItWorks);
@@ -40,7 +93,7 @@ export default function HowItWorksPage() {
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-12 lg:mb-16">
           {[...Array(6)].map((_, i) => <InfoCardSkeleton key={i} />)}
         </section>
-        <section className="text-center py-10 md:py-12 lg:py-16 bg-secondary rounded-lg shadow-md mt-10 md:mt-12 px-4">
+        <section className="text-center py-10 md:py-12 lg:py-16 bg-card dark:bg-secondary/30 rounded-lg shadow-md mt-10 md:mt-12 px-4">
           <Skeleton className="h-8 w-1/3 mx-auto mb-4" />
           <Skeleton className="h-5 w-1/2 mx-auto mb-6" />
           <Skeleton className="h-12 w-36 mx-auto" />
@@ -121,12 +174,12 @@ export default function HowItWorksPage() {
         />
       </section>
 
-       <section className="text-center py-10 md:py-12 lg:py-16 bg-secondary rounded-lg shadow-md mt-10 md:mt-12 px-4">
+       <section className="text-center py-10 md:py-12 lg:py-16 bg-card dark:bg-secondary/30 rounded-lg shadow-md mt-10 md:mt-12 px-4">
          <h2 className="text-xl md:text-2xl font-semibold mb-4">{translations.ctaTitle}</h2>
          <p className="text-muted-foreground mb-6 max-w-md md:max-w-xl lg:max-w-2xl mx-auto">
            {translations.ctaDescription}
          </p>
-         <Button asChild size="lg" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
+         <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
            <Link href="/contact">{translations.ctaButton}</Link>
          </Button>
        </section>
@@ -142,13 +195,13 @@ interface InfoCardProps {
 
 function InfoCard({ icon, title, description }: InfoCardProps) {
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/30">
       <CardHeader className="items-center text-center pb-3 pt-6 px-4 sm:px-6">
         <div className="mb-3 rounded-full bg-primary/10 p-3 inline-flex">{icon}</div>
         <CardTitle className="text-lg md:text-xl">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="text-center text-muted-foreground flex-grow px-4 sm:px-6 pb-6">
-        {description}
+      <CardContent className="text-center text-sm text-muted-foreground flex-grow px-4 sm:px-6 pb-6">
+        {typeof description === 'string' ? <p>{description}</p> : description}
       </CardContent>
     </Card>
   );
@@ -169,4 +222,3 @@ function InfoCardSkeleton() {
     </Card>
   );
 }
-

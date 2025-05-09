@@ -1,0 +1,12 @@
+# robots.txt for Nginxify Assist
+
+User-agent: *
+Allow: /
+
+# Allow all crawlers access to all content by default.
+# Specific disallows can be added below if needed.
+# Example: Disallow /admin/ or /private/ areas if they exist and shouldn't be crawled.
+# Disallow: /mngr/
+
+Sitemap: https://nginxify.com/sitemap.xml 
+# Replace nginxify.com with your actual domain

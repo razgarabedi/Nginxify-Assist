@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'; // Ensure React is imported
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -21,10 +22,60 @@ import { Mail, Info, Send, Loader2, Phone } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useLanguage } from '@/context/language-context';
 import { sendContactEmail } from '@/actions/send-contact-email';
-import React from 'react'; 
 import { getContent } from '@/actions/content-actions';
 import type { ContactContentData } from '@/lib/content-types';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Metadata, ResolvingMetadata } from 'next';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
+
+export async function generateMetadata(
+  { params, searchParams }: { params: {}; searchParams: { [key: string]: string | string[] | undefined } },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const allContent = await getContent();
+  const contactContent = allContent.contact;
+  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
+
+  const title = lang === 'en' ? contactContent.pageTitle_en : contactContent.pageTitle_de;
+  const description = lang === 'en' ? contactContent.pageDescription_en : contactContent.pageDescription_de;
+  const parentOpenGraph = (await parent).openGraph || {};
+  const parentTwitter = (await parent).twitter || {};
+
+  return {
+    title: title,
+    description: description,
+    alternates: {
+      canonical: '/contact',
+      languages: {
+        'de-DE': `${BASE_URL}/contact`,
+        'en-US': `${BASE_URL}/contact?lang=en`,
+      },
+    },
+    openGraph: {
+      ...parentOpenGraph,
+      title: title,
+      description: description,
+      url: lang === 'en' ? `${BASE_URL}/contact?lang=en` : `${BASE_URL}/contact`,
+      images: [
+        {
+          url: `${BASE_URL}/og-contact.png`, 
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+        ...(parentOpenGraph.images || []),
+      ],
+      locale: lang === 'de' ? 'de_DE' : 'en_US',
+    },
+    twitter: {
+      ...parentTwitter,
+      title: title,
+      description: description,
+      images: [`${BASE_URL}/twitter-contact.png`, ...(parentTwitter.images || [])],
+    },
+  };
+}
 
 
 const getFormSchema = (language: 'de' | 'en') => z.object({
@@ -78,10 +129,14 @@ export default function ContactPage() {
     loadPageContent();
   }, []);
 
-   React.useEffect(() => {
+   useEffect(() => {
     const newSchema = getFormSchema(language);
     setFormSchema(newSchema);
+    
+    // Manually update the resolver for the form instance
     (form as any)._resolver = zodResolver(newSchema);
+
+    // Re-validate fields if they have been touched
     Object.keys(form.formState.touchedFields).forEach(fieldName => {
         form.trigger(fieldName as keyof z.infer<typeof formSchema>);
     });
@@ -102,9 +157,7 @@ export default function ContactPage() {
           return;
       }
 
-      console.log("CLIENT-INFO: Sending data to server action:", values); 
       const result = await sendContactEmail(values);
-      console.log("CLIENT-INFO: Received result from server action:", result); 
 
       if (result.success) {
         toast({
@@ -122,11 +175,11 @@ export default function ContactPage() {
         toast({
           title: language === 'en' ? 'Error Sending Message' : 'Fehler beim Senden',
           description: displayMessage || (language === 'en'
-            ? 'Could not send your message. Please try again later or check server logs.' 
-            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut oder prüfen Sie die Server-Logs.'), 
+            ? 'Could not send your message. Please try again later.' 
+            : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'), 
           variant: 'destructive',
         });
-        console.error("Server Action Error:", result.message);
+        console.error("Server Action Error:", result.message); // Full error for server logs
       }
     } catch (error) {
       console.error("Unexpected error during form submission:", error);
@@ -144,41 +197,48 @@ export default function ContactPage() {
 
   if (isLoadingContent || !content) {
     return (
-      <div className="space-y-10 md:space-y-12 lg:space-y-16">
-        <section className="text-center px-4">
+      <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+        <section className="text-center px-4 mb-8">
           <Skeleton className="h-10 w-1/2 mx-auto mb-4" />
           <Skeleton className="h-6 w-3/4 mx-auto" />
         </section>
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16 px-4 xl:px-0">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16">
+          {/* Form Skeleton */}
           <div className="space-y-6 order-2 lg:order-1">
             <Skeleton className="h-8 w-1/3 mb-2" />
             <Alert>
               <Skeleton className="h-5 w-5 mt-1 flex-shrink-0" />
-              <Skeleton className="h-6 w-1/2 mb-1" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-6 w-1/2 mb-1 ml-7" /> {/* Adjusted for icon */}
+              <Skeleton className="h-4 w-full ml-7" />
+              <Skeleton className="h-4 w-5/6 ml-7" />
             </Alert>
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
-                <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
-              </div>
+              {[...Array(2)].map((_, i) => (
+                <div key={`form-row-skel-${i}`} className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
+                  <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
+                </div>
+              ))}
               <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
               <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-24 w-full" /><Skeleton className="h-4 w-1/2 mt-1" /></div>
               <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-16 w-full" /><Skeleton className="h-4 w-1/2 mt-1" /></div>
               <Skeleton className="h-11 w-36" />
             </div>
           </div>
+          {/* Contact Info Skeleton */}
           <div className="space-y-6 order-1 lg:order-2">
             <Skeleton className="h-8 w-1/3 mb-2" />
-            <div className="flex items-start gap-4 p-4 border rounded-lg bg-card">
-              <Skeleton className="h-6 w-6 mt-1 flex-shrink-0" />
-              <div className="w-full"><Skeleton className="h-5 w-1/4 mb-1" /><Skeleton className="h-4 w-3/4 mb-1" /><Skeleton className="h-4 w-1/2 mb-2" /><Skeleton className="h-3 w-5/6" /></div>
-            </div>
-            <div className="flex items-start gap-4 p-4 border rounded-lg bg-card">
-              <Skeleton className="h-6 w-6 mt-1 flex-shrink-0" />
-              <div className="w-full"><Skeleton className="h-5 w-1/4 mb-1" /><Skeleton className="h-4 w-3/4 mb-1" /><Skeleton className="h-4 w-1/2" /></div>
-            </div>
+            {[...Array(2)].map((_, i) => (
+              <div key={`info-card-skel-${i}`} className="flex items-start gap-4 p-4 border rounded-lg bg-card dark:bg-secondary/30">
+                <Skeleton className="h-6 w-6 mt-1 flex-shrink-0 rounded-full" />
+                <div className="w-full space-y-1.5">
+                  <Skeleton className="h-5 w-1/4" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-3 w-5/6" />
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </div>
@@ -211,25 +271,24 @@ export default function ContactPage() {
     emailInfoHint: language === 'en' ? content.emailInfoHint_en : content.emailInfoHint_de,
     phoneInfoTitle: language === 'en' ? content.phoneInfoTitle_en : content.phoneInfoTitle_de,
     phoneInfoText: language === 'en' ? content.phoneInfoText_en : content.phoneInfoText_de,
-    phoneInfoNumber: content.phoneInfoNumber, // Single language for phone number
+    phoneInfoNumber: content.phoneInfoNumber, 
   };
 
   return (
-    <div className="space-y-10 md:space-y-12 lg:space-y-16"> {/* Increased spacing */}
-      <section className="text-center px-4">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1> {/* Responsive font size */}
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto"> {/* Responsive font size & max-width */}
+    <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
+      <section className="text-center px-4 mb-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
+        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
           {translations.pageDescription}
         </p>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16 px-4 xl:px-0"> {/* Adjusted padding and gap */}
-        {/* Contact Form */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16">
         <div className="space-y-6 order-2 lg:order-1">
            <h2 className="text-2xl font-semibold">{translations.formTitle}</h2>
-            <Alert>
-              <Info className="h-4 w-4 mt-1 flex-shrink-0" /> 
-              <AlertTitle>{translations.alertTitle}</AlertTitle>
+            <Alert className="bg-card dark:bg-secondary/30">
+              <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-primary" /> 
+              <AlertTitle className="font-semibold">{translations.alertTitle}</AlertTitle>
               <AlertDescription>
                 {translations.alertDescription}
               </AlertDescription>
@@ -286,7 +345,7 @@ export default function ContactPage() {
                     <FormControl>
                       <Textarea
                         placeholder={translations.messagePlaceholder}
-                        className="min-h-[120px]"
+                        className="min-h-[120px] resize-y"
                         {...field}
                       />
                     </FormControl>
@@ -306,7 +365,7 @@ export default function ContactPage() {
                     <FormControl>
                       <Textarea
                         placeholder={translations.techDetailsPlaceholder}
-                        className="min-h-[80px]"
+                        className="min-h-[80px] resize-y"
                         {...field}
                       />
                     </FormControl>
@@ -317,7 +376,7 @@ export default function ContactPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-primary hover:bg-primary/90"> 
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"> 
                 {isSubmitting ? (
                    <>
                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -334,17 +393,16 @@ export default function ContactPage() {
           </Form>
         </div>
 
-        {/* Contact Info */}
         <div className="space-y-6 order-1 lg:order-2">
           <h2 className="text-2xl font-semibold">{translations.directContactTitle}</h2>
-          <div className="flex items-start gap-4 p-4 border rounded-lg bg-card"> 
+          <div className="flex items-start gap-4 p-4 border rounded-lg bg-card dark:bg-secondary/30"> 
             <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-medium">{translations.emailInfoTitle}</h3>
+              <h3 className="font-medium text-base">{translations.emailInfoTitle}</h3>
               <p className="text-muted-foreground text-sm"> 
                 {translations.emailInfoText}
               </p>
-              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all font-medium">
+              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all font-medium text-sm">
                 hilfe@nginxify.com
               </a>
                <p className="text-xs text-muted-foreground mt-2"> 
@@ -352,12 +410,12 @@ export default function ContactPage() {
                </p>
             </div>
           </div>
-           <div className="flex items-start gap-4 p-4 border rounded-lg bg-card">
+           <div className="flex items-start gap-4 p-4 border rounded-lg bg-card dark:bg-secondary/30">
              <Phone className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
              <div>
-               <h3 className="font-medium">{translations.phoneInfoTitle}</h3>
+               <h3 className="font-medium text-base">{translations.phoneInfoTitle}</h3>
                <p className="text-muted-foreground text-sm"> {translations.phoneInfoText}</p>
-               <a href={`tel:${translations.phoneInfoNumber.replace(/\s/g, '')}`} className="text-primary hover:underline font-medium"> {translations.phoneInfoNumber}</a>
+               <a href={`tel:${translations.phoneInfoNumber.replace(/\s/g, '')}`} className="text-primary hover:underline font-medium text-sm"> {translations.phoneInfoNumber}</a>
              </div>
            </div>
         </div>
