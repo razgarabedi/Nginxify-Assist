@@ -10,21 +10,21 @@
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 207 70% 53%; /* Blue */
+    --primary: 207 70% 45%; /* Blue - Adjusted for contrast */
     --primary-foreground: 0 0% 98%; /* White */
     --secondary: 204 10% 90%; /* Lighter Grey */
     --secondary-foreground: 0 0% 9%; /* Dark Grey */
     --muted: 204 17% 93%; /* Lightest Grey */
     --muted-foreground: 0 0% 45.1%; /* Mid Grey */
-    --accent: 145 63% 49%; /* Green */
+    --accent: 145 63% 42%; /* Green - Adjusted for contrast */
     --accent-foreground: 0 0% 98%; /* White */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 204 10% 85%; /* Grey Border */
     --input: 204 10% 85%; /* Grey Input */
-    --ring: 207 70% 53%; /* Blue Ring */
-    --chart-1: 207 70% 53%; /* Blue */
-    --chart-2: 145 63% 49%; /* Green */
+    --ring: 207 70% 45%; /* Blue Ring - Adjusted to match primary */
+    --chart-1: 207 70% 45%; /* Blue - Adjusted to match primary */
+    --chart-2: 145 63% 42%; /* Green - Adjusted to match accent */
     --chart-3: 43 74% 66%;
     --chart-4: 27 87% 67%;
     --chart-5: 12 76% 61%;
@@ -45,21 +45,21 @@
     --card-foreground: 204 17% 96%;
     --popover: 210 10% 15%;
     --popover-foreground: 204 17% 96%;
-    --primary: 207 70% 53%; /* Blue */
+    --primary: 207 70% 45%; /* Blue - Adjusted for contrast */
     --primary-foreground: 0 0% 98%; /* White */
     --secondary: 210 10% 25%; /* Mid Dark Grey-Blue */
     --secondary-foreground: 204 17% 96%; /* Light Grey */
     --muted: 210 10% 25%;
     --muted-foreground: 210 5% 65%; /* Lighter Mid Grey */
-    --accent: 145 63% 49%; /* Green */
+    --accent: 145 63% 42%; /* Green - Adjusted for contrast */
     --accent-foreground: 0 0% 98%; /* White */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 210 10% 30%; /* Darker Border */
     --input: 210 10% 30%; /* Darker Input */
-    --ring: 207 70% 53%; /* Blue Ring */
-    --chart-1: 207 70% 53%;
-    --chart-2: 145 63% 49%;
+    --ring: 207 70% 45%; /* Blue Ring - Adjusted to match primary */
+    --chart-1: 207 70% 45%; /* Blue - Adjusted to match primary */
+    --chart-2: 145 63% 42%; /* Green - Adjusted to match accent */
     --chart-3: 43 74% 66%;
     --chart-4: 27 87% 67%;
     --chart-5: 12 76% 61%;
