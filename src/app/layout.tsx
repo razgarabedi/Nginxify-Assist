@@ -87,8 +87,8 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1, // Often set to 1 for accessibility, but 2-5 can allow some user zoom.
-  // userScalable: true, // Default is true, explicitly set if needed.
+  maximumScale: 5, // Allow user zooming up to 5x
+  userScalable: true, // Explicitly enable user scaling
 }
 
 
@@ -101,11 +101,8 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning className="h-full scroll-smooth">
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
-        {/* Google Fonts preconnect examples. Activate if using Google Fonts directly.
-            GeistSans/Mono are self-hosted via next/font, so these are not strictly needed for them.
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        */}
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" crossOrigin="anonymous"/>
       </head>
       <body
         className={cn(
@@ -117,7 +114,6 @@ export default function RootLayout({
         <LanguageProvider>
           <HtmlLangUpdater />
           <Header />
-          {/* Adjusted padding for better responsiveness */}
           <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-10 lg:py-12">
             {children}
           </main>
@@ -128,4 +124,3 @@ export default function RootLayout({
     </html>
   );
 }
-
