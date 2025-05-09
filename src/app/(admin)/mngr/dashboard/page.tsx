@@ -18,7 +18,6 @@ import { allServices as serviceDefinitions, type Service as ServiceDefinition } 
 import { 
   getContent, 
   saveContent,
-  // Removed direct import of getInitialHomeData & getInitialSlideshowData from content-actions
   type AllContentData,
   type HomeContentData,
   type ServicesPageData,
@@ -153,12 +152,12 @@ export default function AdminDashboardPage() {
 
   const [homeContent, setHomeContent] = useState<Omit<HomeContentData, 'slideshowItems'>>(
     () => {
-      const initialHome = getInitialHomeData(); // Now from default-content-getters.ts
+      const initialHome = getInitialHomeData();
       const { slideshowItems, ...rest } = initialHome;
       return rest;
     }
   );
-  const [slideshowItems, setSlideshowItems] = useState<SlideContentData[]>(() => getInitialSlideshowData()); // Now from default-content-getters.ts
+  const [slideshowItems, setSlideshowItems] = useState<SlideContentData[]>(() => getInitialSlideshowData());
   const [servicesPageContent, setServicesPageContent] = useState<ServicesPageData>(getInitialServicesPageData);
   const [servicesItemsContent, setServicesItemsContent] = useState<Record<string, ServiceItemContentData>>({});
   const [howItWorksContent, setHowItWorksContent] = useState<HowItWorksContentData>(getInitialHowItWorksData);
@@ -175,31 +174,19 @@ export default function AdminDashboardPage() {
     }
   }, [isAuthenticated, authIsLoading, router]);
 
-  // Early return if auth is still loading or if user is not authenticated (redirect will happen)
-  // This helps prevent calling state initializers for content if a redirect is imminent.
-  if (authIsLoading || (!isAuthenticated && !authIsLoading)) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
-      </div>
-    );
-  }
-
-
   useEffect(() => {
     async function loadPageContent() {
-      if (isAuthenticated) { // Should always be true if we reach here due to the check above
+      if (isAuthenticated) {
         setIsLoadingContent(true);
         try {
           const data = await getContent();
           
-          const defaultInitialHome = getInitialHomeData(); // Get defaults from getter
-          const defaultInitialSlides = getInitialSlideshowData(); // Get defaults from getter
+          const defaultInitialHome = getInitialHomeData(); 
+          const defaultInitialSlides = getInitialSlideshowData();
 
           const { slideshowItems: loadedSlideshowItems, ...loadedHomeContent } = data.home || defaultInitialHome;
           setHomeContent(loadedHomeContent);
-          setSlideshowItems(loadedSlideshowItems || defaultInitialSlides);
+          setSlideshowItems(loadedSlideshowItems && loadedSlideshowItems.length > 0 ? loadedSlideshowItems : defaultInitialSlides);
 
           setServicesPageContent(data.servicesPage || getInitialServicesPageData());
           setHowItWorksContent(data.howItWorks || getInitialHowItWorksData());
@@ -217,7 +204,7 @@ export default function AdminDashboardPage() {
                 ...data.servicesItems[serviceSlug]
               };
             } else {
-              finalServicesItemsContent[serviceSlug] = defaultTextContent;
+              finalServicesItemsContent[serviceSlug] = defaultTextContent as ServiceItemContentData;
             }
             finalDisplayServices.push(sd);
           });
@@ -232,7 +219,6 @@ export default function AdminDashboardPage() {
             description: 'Could not load website content. Using defaults.',
             variant: 'destructive',
           });
-          // Fallback to all default getters if getContent fails
           const { slideshowItems: defaultSlides, ...defaultHome } = getInitialHomeData();
           setHomeContent(defaultHome);
           setSlideshowItems(defaultSlides);
@@ -243,7 +229,7 @@ export default function AdminDashboardPage() {
           const fallbackServicesItems: Record<string, ServiceItemContentData> = {};
           serviceDefinitions.forEach(s => {
             const { icon, slug, category, ...textContent } = s;
-            fallbackServicesItems[slug] = textContent;
+            fallbackServicesItems[slug] = textContent as ServiceItemContentData;
           });
           setServicesItemsContent(fallbackServicesItems);
           setDisplayServices(getInitialDisplayServices());
@@ -252,16 +238,14 @@ export default function AdminDashboardPage() {
         }
       }
     }
-    // Only load content if authenticated and not in auth loading state.
     if(!authIsLoading && isAuthenticated) {
         loadPageContent();
     }
-  }, [isAuthenticated, authIsLoading, toast]); // Added authIsLoading to dependencies
+  }, [isAuthenticated, authIsLoading, toast]); 
 
   const handleSlideshowItemChange = useCallback((index: number, field: keyof SlideContentData, value: string | number) => {
     setSlideshowItems(prev => {
       const newSlides = [...prev];
-      // Type assertion because field is keyof SlideContentData, and value matches its type
       (newSlides[index] as any)[field] = value; 
       return newSlides;
     });
@@ -300,7 +284,7 @@ export default function AdminDashboardPage() {
     serviceSlug?: string
   ) => {
     switch (pageKey) {
-      case 'homeFields': // For non-slideshow home fields
+      case 'homeFields':
         setHomeContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
         break;
       case 'servicesPage':
@@ -319,19 +303,16 @@ export default function AdminDashboardPage() {
       case 'servicesItems':
         if (serviceSlug && field) {
           let keyToUpdate: string;
-          // For servicesItems, the keys are titleDe, titleEn, descriptionDe, etc.
-          // So, we need to combine field and lang (e.g., 'title' + 'De' -> 'titleDe')
           if (lang) { 
             const capitalizedLang = lang.charAt(0).toUpperCase() + lang.slice(1); 
             keyToUpdate = field + capitalizedLang; 
           } else { 
-            // For non-bilingual fields like imageUrl, imageHint
             keyToUpdate = field; 
           }
           setServicesItemsContent(prev => ({
             ...prev,
             [serviceSlug]: {
-              ...(prev[serviceSlug] || {} as ServiceItemContentData), // Ensure prev[serviceSlug] is not undefined
+              ...(prev[serviceSlug] || {} as ServiceItemContentData),
               [keyToUpdate]: value
             } as ServiceItemContentData
           }));
@@ -371,7 +352,7 @@ export default function AdminDashboardPage() {
     fieldName: string, 
     label: string,
     isTextarea = false,
-    itemKey?: string | number // serviceSlug for servicesItems, index for slideshowItem
+    itemKey?: string | number
   ) => {
     const idPrefix = `${sectionKey}-${itemKey || ''}-${fieldName}`;
     const idDe = `${idPrefix}-de`;
@@ -390,7 +371,6 @@ export default function AdminDashboardPage() {
       onChangeEn = (e) => handleSlideshowItemChange(itemKey, `${fieldName}_en` as keyof SlideContentData, e.target.value);
     } else if (sectionKey === 'servicesItems' && typeof itemKey === 'string') {
         const itemContent = servicesItemsContent[itemKey];
-        // Adjust for keys like titleDe, titleEn in servicesItemsContent
         valueDe = (itemContent as any)[`${fieldName}De`] || '';
         valueEn = (itemContent as any)[`${fieldName}En`] || '';
         onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de', itemKey);
@@ -416,7 +396,6 @@ export default function AdminDashboardPage() {
         onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de');
         onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en');
     } else {
-        // Fallback or error for unhandled sectionKey
         return null;
     }
     
@@ -465,7 +444,6 @@ export default function AdminDashboardPage() {
         value = (contactContent as any)[fieldName] || '';
         onChangeFunc = (e) => handleContentChange('contact', fieldName, e.target.value);
     } else if (sectionKey === 'servicesItems' && typeof itemKey === 'string') {
-        // For fields like imageUrl, imageHint in servicesItemsContent
         const itemContent = servicesItemsContent[itemKey];
         value = (itemContent as any)?.[fieldName] || ''; 
         onChangeFunc = (e) => handleContentChange('servicesItems', fieldName, e.target.value, undefined, itemKey);
@@ -485,8 +463,15 @@ export default function AdminDashboardPage() {
     );
   };
 
+  if (authIsLoading || (!isAuthenticated && !authIsLoading)) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
 
-  // This loading state now primarily covers content loading after authentication is confirmed.
   if (isLoadingContent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
@@ -496,7 +481,6 @@ export default function AdminDashboardPage() {
     );
   }
   
-  // Main content render (authIsLoading is false, isAuthenticated is true, isLoadingContent is false)
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-5xl mx-auto"> 
@@ -685,3 +669,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
