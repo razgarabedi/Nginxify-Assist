@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { LanguageProvider } from '@/context/language-context';
-import HtmlLangUpdater from '@/components/layout/html-lang-updater'; // Import the new component
+import HtmlLangUpdater from '@/components/layout/html-lang-updater';
 import { cn } from '@/lib/utils';
 
 const SITE_NAME = 'Nginxify Assist';
@@ -22,14 +22,8 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION_DE, 
-  applicationName: SITE_NAME,
-  referrer: 'origin-when-cross-origin',
-  keywords: ['IT-Hilfe', 'Ehrenamt', 'Vereine', 'Technik-Support', 'Nginxify', 'IT Support', 'Volunteer', 'Non-profit', 'nginx web server', 'nginx reverse proxy', 'nginx configuration'],
-  authors: [{ name: 'Nginxify Team' , url: BASE_URL }], 
-  creator: 'Nginxify Team',
-  publisher: 'Nginxify Assist',
   alternates: {
-    canonical: '/', 
+    canonical: '/',
     languages: {
       'de-DE': '/',
       'en-US': '/?lang=en', 
@@ -76,6 +70,12 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  applicationName: SITE_NAME,
+  referrer: 'origin-when-cross-origin',
+  keywords: ['IT-Hilfe', 'Ehrenamt', 'Vereine', 'Technik-Support', 'Nginxify', 'IT Support', 'Volunteer', 'Non-profit', 'nginx web server', 'nginx reverse proxy', 'nginx configuration', 'kostenlose IT Hilfe', 'gemeinnützige IT Unterstützung'],
+  authors: [{ name: 'Nginxify Team' , url: BASE_URL }], 
+  creator: 'Nginxify Team',
+  publisher: 'Nginxify Assist',
   manifest: `${BASE_URL}/site.webmanifest`, 
 };
 
@@ -87,7 +87,8 @@ export const viewport: Viewport = {
   colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1, 
+  maximumScale: 1, // Often set to 1 for accessibility, but 2-5 can allow some user zoom.
+  // userScalable: true, // Default is true, explicitly set if needed.
 }
 
 
@@ -100,8 +101,11 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning className="h-full scroll-smooth">
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
-        {/* Removed preconnect for picsum.photos as it's no longer used for services */}
-        {/* <link rel="preconnect" href="https://picsum.photos" /> */}
+        {/* Google Fonts preconnect examples. Activate if using Google Fonts directly.
+            GeistSans/Mono are self-hosted via next/font, so these are not strictly needed for them.
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        */}
       </head>
       <body
         className={cn(
@@ -113,7 +117,8 @@ export default function RootLayout({
         <LanguageProvider>
           <HtmlLangUpdater />
           <Header />
-          <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
+          {/* Adjusted padding for better responsiveness */}
+          <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-10 lg:py-12">
             {children}
           </main>
           <Footer />
@@ -123,3 +128,4 @@ export default function RootLayout({
     </html>
   );
 }
+

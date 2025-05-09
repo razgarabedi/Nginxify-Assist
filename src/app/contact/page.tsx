@@ -25,12 +25,6 @@ import { sendContactEmail } from '@/actions/send-contact-email';
 import { getContent } from '@/actions/content-actions';
 import type { ContactContentData } from '@/lib/content-types';
 import { Skeleton } from '@/components/ui/skeleton';
-// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
-
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
-
-// Removed generateMetadata function as it's not allowed in client components.
-// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 const getFormSchema = (language: 'de' | 'en') => z.object({
@@ -66,7 +60,7 @@ export default function ContactPage() {
       message: '',
       technicalDetails: '',
     },
-    mode: 'onChange', // Changed from onBlur to onChange for more immediate feedback
+    mode: 'onChange',
   });
 
   useEffect(() => {
@@ -153,44 +147,44 @@ export default function ContactPage() {
   if (isLoadingContent || !content) {
     return (
       <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-        <section className="text-center px-4 mb-8">
-          <Skeleton className="h-10 w-1/2 mx-auto mb-4" />
-          <Skeleton className="h-6 w-3/4 mx-auto" />
+        <section className="text-center px-4 mb-10 md:mb-12">
+          <Skeleton className="h-12 w-1/2 mx-auto mb-5" />
+          <Skeleton className="h-7 w-3/4 mx-auto" />
         </section>
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16">
           {/* Form Skeleton */}
-          <div className="space-y-6 order-2 lg:order-1">
-            <Skeleton className="h-8 w-1/3 mb-2" />
+          <div className="space-y-8 order-2 lg:order-1">
+            <Skeleton className="h-9 w-1/3 mb-3" />
             <Alert>
-              <Skeleton className="h-5 w-5 mt-1 flex-shrink-0" />
-              <Skeleton className="h-6 w-1/2 mb-1 ml-7" /> {/* Adjusted for icon */}
-              <Skeleton className="h-4 w-full ml-7" />
-              <Skeleton className="h-4 w-5/6 ml-7" />
+              <Skeleton className="h-6 w-6 mt-1 flex-shrink-0" />
+              <Skeleton className="h-7 w-1/2 mb-2 ml-8" /> {/* Adjusted for icon */}
+              <Skeleton className="h-5 w-full ml-8" />
+              <Skeleton className="h-5 w-5/6 ml-8" />
             </Alert>
-            <div className="space-y-6">
+            <div className="space-y-7">
               {[...Array(2)].map((_, i) => (
-                <div key={`form-row-skel-${i}`} className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
-                  <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
+                <div key={`form-row-skel-${i}`} className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                  <div><Skeleton className="h-6 w-1/4 mb-2" /><Skeleton className="h-11 w-full" /></div>
+                  <div><Skeleton className="h-6 w-1/4 mb-2" /><Skeleton className="h-11 w-full" /></div>
                 </div>
               ))}
-              <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-10 w-full" /></div>
-              <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-24 w-full" /><Skeleton className="h-4 w-1/2 mt-1" /></div>
-              <div><Skeleton className="h-6 w-1/4 mb-1" /><Skeleton className="h-16 w-full" /><Skeleton className="h-4 w-1/2 mt-1" /></div>
-              <Skeleton className="h-11 w-36" />
+              <div><Skeleton className="h-6 w-1/4 mb-2" /><Skeleton className="h-11 w-full" /></div>
+              <div><Skeleton className="h-6 w-1/4 mb-2" /><Skeleton className="h-28 w-full" /><Skeleton className="h-4 w-1/2 mt-2" /></div>
+              <div><Skeleton className="h-6 w-1/4 mb-2" /><Skeleton className="h-20 w-full" /><Skeleton className="h-4 w-1/2 mt-2" /></div>
+              <Skeleton className="h-12 w-40" />
             </div>
           </div>
           {/* Contact Info Skeleton */}
-          <div className="space-y-6 order-1 lg:order-2">
-            <Skeleton className="h-8 w-1/3 mb-2" />
+          <div className="space-y-8 order-1 lg:order-2">
+            <Skeleton className="h-9 w-1/3 mb-3" />
             {[...Array(2)].map((_, i) => (
-              <div key={`info-card-skel-${i}`} className="flex items-start gap-4 p-4 border rounded-lg bg-card dark:bg-secondary/30">
-                <Skeleton className="h-6 w-6 mt-1 flex-shrink-0 rounded-full" />
-                <div className="w-full space-y-1.5">
-                  <Skeleton className="h-5 w-1/4" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-3 w-5/6" />
+              <div key={`info-card-skel-${i}`} className="flex items-start gap-5 p-5 border rounded-xl bg-card dark:bg-secondary/30">
+                <Skeleton className="h-7 w-7 mt-1 flex-shrink-0 rounded-full" />
+                <div className="w-full space-y-2">
+                  <Skeleton className="h-6 w-1/4" />
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-5 w-1/2" />
+                  <Skeleton className="h-4 w-5/6" />
                 </div>
               </div>
             ))}
@@ -231,34 +225,36 @@ export default function ContactPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-      <section className="text-center px-4 mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
+      <section className="text-center px-4 mb-10 md:mb-12">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{translations.pageTitle}</h1>
+        <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
           {translations.pageDescription}
         </p>
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-12 lg:gap-16">
-        <div className="space-y-6 order-2 lg:order-1">
-           <h2 className="text-2xl font-semibold">{translations.formTitle}</h2>
-            <Alert className="bg-card dark:bg-secondary/30">
-              <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-primary" /> 
-              <AlertTitle className="font-semibold">{translations.alertTitle}</AlertTitle>
-              <AlertDescription>
-                {translations.alertDescription}
-              </AlertDescription>
+        <div className="space-y-8 order-2 lg:order-1">
+           <h2 className="text-2xl sm:text-3xl font-semibold">{translations.formTitle}</h2>
+            <Alert className="bg-card dark:bg-secondary/30 border-l-4 border-primary rounded-md p-5">
+              <Info className="h-6 w-6 flex-shrink-0 text-primary absolute left-4 top-1/2 -translate-y-1/2" /> 
+              <div className="ml-10"> {/* Add margin to avoid overlap with absolute positioned icon */}
+                <AlertTitle className="font-semibold text-lg">{translations.alertTitle}</AlertTitle>
+                <AlertDescription className="text-base">
+                  {translations.alertDescription}
+                </AlertDescription>
+              </div>
             </Alert>
            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6"> 
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6"> 
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{translations.nameLabel}</FormLabel>
+                      <FormLabel className="text-base">{translations.nameLabel}</FormLabel>
                       <FormControl>
-                        <Input placeholder={translations.namePlaceholder} {...field} />
+                        <Input placeholder={translations.namePlaceholder} {...field} className="h-11 text-base"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -269,9 +265,9 @@ export default function ContactPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{translations.emailLabel}</FormLabel>
+                      <FormLabel className="text-base">{translations.emailLabel}</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder={translations.emailPlaceholder} {...field} />
+                        <Input type="email" placeholder={translations.emailPlaceholder} {...field} className="h-11 text-base"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -283,9 +279,9 @@ export default function ContactPage() {
                 name="subject"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{translations.subjectLabel}</FormLabel>
+                    <FormLabel className="text-base">{translations.subjectLabel}</FormLabel>
                     <FormControl>
-                      <Input placeholder={translations.subjectPlaceholder} {...field} />
+                      <Input placeholder={translations.subjectPlaceholder} {...field} className="h-11 text-base"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -296,15 +292,15 @@ export default function ContactPage() {
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{translations.messageLabel}</FormLabel>
+                    <FormLabel className="text-base">{translations.messageLabel}</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={translations.messagePlaceholder}
-                        className="min-h-[120px] resize-y"
+                        className="min-h-[150px] resize-y text-base"
                         {...field}
                       />
                     </FormControl>
-                     <FormDescription>
+                     <FormDescription className="text-sm">
                         {translations.messageDescription}
                      </FormDescription>
                     <FormMessage />
@@ -316,30 +312,30 @@ export default function ContactPage() {
                 name="technicalDetails"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{translations.techDetailsLabel}</FormLabel>
+                    <FormLabel className="text-base">{translations.techDetailsLabel}</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder={translations.techDetailsPlaceholder}
-                        className="min-h-[80px] resize-y"
+                        className="min-h-[100px] resize-y text-base"
                         {...field}
                       />
                     </FormControl>
-                    <FormDescription>
+                    <FormDescription className="text-sm">
                         {translations.techDetailsDescription}
                      </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"> 
+              <Button type="submit" disabled={isSubmitting} size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground text-base sm:text-lg py-3 px-8"> 
                 {isSubmitting ? (
                    <>
-                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                     <Loader2 className="mr-2.5 h-5 w-5 animate-spin" />
                      {translations.submittingButton}
                    </>
                 ) : (
                   <>
-                    <Send className="mr-2 h-4 w-4" />
+                    <Send className="mr-2.5 h-5 w-5" />
                     {translations.submitButton}
                   </>
                 )}
@@ -348,29 +344,29 @@ export default function ContactPage() {
           </Form>
         </div>
 
-        <div className="space-y-6 order-1 lg:order-2">
-          <h2 className="text-2xl font-semibold">{translations.directContactTitle}</h2>
-          <div className="flex items-start gap-4 p-4 border rounded-lg bg-card dark:bg-secondary/30"> 
-            <Mail className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+        <div className="space-y-8 order-1 lg:order-2">
+          <h2 className="text-2xl sm:text-3xl font-semibold">{translations.directContactTitle}</h2>
+          <div className="flex items-start gap-4 sm:gap-5 p-5 sm:p-6 border rounded-xl bg-card dark:bg-secondary/30 shadow-md"> 
+            <Mail className="h-7 w-7 text-primary mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-medium text-base">{translations.emailInfoTitle}</h3>
-              <p className="text-muted-foreground text-sm"> 
+              <h3 className="font-semibold text-lg sm:text-xl mb-1">{translations.emailInfoTitle}</h3>
+              <p className="text-muted-foreground text-base mb-1.5"> 
                 {translations.emailInfoText}
               </p>
-              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all font-medium text-sm">
+              <a href="mailto:hilfe@nginxify.com" className="text-primary hover:underline break-all font-medium text-base">
                 hilfe@nginxify.com
               </a>
-               <p className="text-xs text-muted-foreground mt-2"> 
+               <p className="text-sm text-muted-foreground mt-2.5"> 
                 {translations.emailInfoHint}
                </p>
             </div>
           </div>
-           <div className="flex items-start gap-4 p-4 border rounded-lg bg-card dark:bg-secondary/30">
-             <Phone className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+           <div className="flex items-start gap-4 sm:gap-5 p-5 sm:p-6 border rounded-xl bg-card dark:bg-secondary/30 shadow-md">
+             <Phone className="h-7 w-7 text-primary mt-1 flex-shrink-0" />
              <div>
-               <h3 className="font-medium text-base">{translations.phoneInfoTitle}</h3>
-               <p className="text-muted-foreground text-sm"> {translations.phoneInfoText}</p>
-               <a href={`tel:${translations.phoneInfoNumber.replace(/\s/g, '')}`} className="text-primary hover:underline font-medium text-sm"> {translations.phoneInfoNumber}</a>
+               <h3 className="font-semibold text-lg sm:text-xl mb-1">{translations.phoneInfoTitle}</h3>
+               <p className="text-muted-foreground text-base mb-1.5"> {translations.phoneInfoText}</p>
+               <a href={`tel:${translations.phoneInfoNumber.replace(/\s/g, '')}`} className="text-primary hover:underline font-medium text-base"> {translations.phoneInfoNumber}</a>
              </div>
            </div>
         </div>

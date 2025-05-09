@@ -13,12 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getContent } from '@/actions/content-actions';
 import type { DisplayService, ServiceItemContentData } from '@/lib/content-types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
-
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
-
-// Removed generateMetadata function as it's not allowed in client components.
-// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 interface ServiceDetailPageProps {
@@ -27,6 +21,7 @@ interface ServiceDetailPageProps {
 
 
 export default function ServiceDetailPage({ params: paramsPromise }: ServiceDetailPageProps) {
+   // Correctly unwrap the promise for params
    const routeParams = use(paramsPromise);
    const { slug } = routeParams; 
 
@@ -68,22 +63,22 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
   
   if (service === undefined) { 
     return (
-      <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-         <Skeleton className="h-10 w-36 mb-6" />
-         <div className="flex items-center gap-3 mb-6">
-             <Skeleton className="h-8 w-8 rounded-full" />
-             <Skeleton className="h-10 w-3/4" />
+      <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+         <Skeleton className="h-10 w-40 mb-6 md:mb-8" />
+         <div className="flex items-center gap-4 mb-6 md:mb-8">
+             <Skeleton className="h-10 w-10 md:h-12 md:w-12 rounded-full" />
+             <Skeleton className="h-10 w-3/4 md:h-12" />
          </div>
-         <Skeleton className="w-full aspect-[16/9] rounded-lg mb-6 shadow-md" />
+         <Skeleton className="w-full aspect-video sm:aspect-[16/9] rounded-xl mb-6 md:mb-8 shadow-lg" />
          <div className="space-y-4">
-             <Skeleton className="h-5 w-full" />
-             <Skeleton className="h-5 w-full" />
-             <Skeleton className="h-5 w-5/6" />
-             <Skeleton className="h-5 w-full" />
-             <Skeleton className="h-5 w-4/5" />
+             <Skeleton className="h-6 w-full" />
+             <Skeleton className="h-6 w-full" />
+             <Skeleton className="h-6 w-5/6" />
+             <Skeleton className="h-6 w-full" />
+             <Skeleton className="h-6 w-4/5" />
          </div>
-         <div className="pt-8 border-t mt-10">
-            <Skeleton className="h-11 w-full sm:w-52" />
+         <div className="pt-8 md:pt-10 border-t mt-10 md:mt-12">
+            <Skeleton className="h-12 w-full sm:w-56" />
          </div>
       </div>
     );
@@ -110,28 +105,27 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
   const placeholderImage = `https://picsum.photos/seed/${service.slug}/1280/720`;
 
   return (
-    <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-2 sm:px-4 lg:px-0 py-8">
-      <Button variant="outline" asChild className="mb-4 print:hidden self-start">
+    <div className="space-y-6 md:space-y-8 max-w-4xl mx-auto px-2 sm:px-4 lg:px-0 py-8 md:py-12">
+      <Button variant="outline" asChild className="mb-4 md:mb-6 print:hidden self-start text-sm sm:text-base">
         <Link href="/services" className="inline-flex items-center">
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           {translations.backButton}
         </Link>
       </Button>
 
       <header className="mb-6 md:mb-8">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight flex items-center gap-3">
-          {React.cloneElement(service.icon, { className: 'h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 text-primary flex-shrink-0' })}
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight flex items-center gap-3 sm:gap-4">
+          {React.cloneElement(service.icon, { className: 'h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-primary flex-shrink-0' })}
           {title}
         </h1>
       </header>
       
-
-       <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg shadow-lg mb-6 md:mb-8">
+       <div className="relative w-full aspect-video sm:aspect-[16/9] overflow-hidden rounded-xl shadow-xl mb-6 md:mb-8">
          <Image
            src={service.imageUrl || placeholderImage}
            alt={title}
            fill
-           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 896px" 
+           sizes="(max-width: 640px) 100vw, (max-width: 1023px) 80vw, 896px" 
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint || "technology service"}
            priority 
@@ -139,31 +133,34 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
        </div>
 
        {notice && (
-         <Alert className="mb-6 md:mb-8 bg-secondary/50 dark:bg-secondary/20 border-primary/50">
-           <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-           <AlertTitle className="font-semibold text-primary">{translations.noticeTitle}</AlertTitle>
-           <AlertDescription className="text-foreground/80">
-             {notice}
-           </AlertDescription>
+         <Alert className="mb-6 md:mb-8 bg-secondary/50 dark:bg-secondary/20 border-l-4 border-primary rounded-md p-5">
+           <Info className="h-6 w-6 text-primary flex-shrink-0 absolute left-4 top-1/2 -translate-y-1/2" />
+           <div className="ml-10"> {/* Ensure content doesn't overlap with icon */}
+            <AlertTitle className="font-semibold text-primary text-lg">{translations.noticeTitle}</AlertTitle>
+            <AlertDescription className="text-foreground/80 text-base">
+                {notice}
+            </AlertDescription>
+           </div>
          </Alert>
        )}
 
        <article
-         className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none dark:prose-invert 
-                    prose-headings:font-semibold prose-headings:text-foreground 
+         className="prose prose-base sm:prose-lg lg:prose-xl xl:prose-2xl max-w-none dark:prose-invert 
+                    prose-headings:font-bold prose-headings:text-foreground 
                     prose-p:text-foreground/90 prose-li:text-foreground/90 
                     prose-strong:text-foreground prose-a:text-primary hover:prose-a:underline
-                    prose-ul:list-disc prose-ul:pl-5 prose-ol:list-decimal prose-ol:pl-5
-                    space-y-4"
+                    prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6
+                    space-y-5 leading-relaxed" // Adjusted leading for readability
          dangerouslySetInnerHTML={{ __html: detailedDescription }}
        />
 
 
-       <footer className="pt-6 md:pt-8 border-t mt-8 md:mt-10 print:hidden">
-         <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+       <footer className="pt-6 md:pt-10 border-t mt-8 md:mt-12 print:hidden">
+         <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto text-base sm:text-lg py-3 px-8">
             <Link href="/contact">{translations.contactButton}</Link>
          </Button>
        </footer>
     </div>
   );
 }
+

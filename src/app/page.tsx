@@ -4,20 +4,13 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, User } from 'lucide-react';
+import { Users, User, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/context/language-context'; 
-import React, { useEffect, useState } from 'react'; // Import React
+import React, { useEffect, useState } from 'react'; 
 import type { HomeContentData } from '@/lib/content-types';
 import { getContent } from '@/actions/content-actions';
 import { Skeleton } from '@/components/ui/skeleton';
-// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
 
-// Removed Props type as generateMetadata is removed.
-// const SITE_NAME = 'Nginxify Assist'; // No longer needed here
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
-
-// Removed generateMetadata function as it's not allowed in client components.
-// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 export default function Home() {
   const { language } = useLanguage(); 
@@ -41,38 +34,38 @@ export default function Home() {
 
   if (isLoading || !content) {
     return (
-      <div className="space-y-8 md:space-y-12 lg:space-y-16">
+      <div className="space-y-12 md:space-y-16 lg:space-y-20">
         {/* Hero Section Skeleton */}
-        <section className="text-center py-12 md:py-16 lg:py-20 px-4 bg-card dark:bg-secondary/30 rounded-lg shadow-md">
-          <Skeleton className="h-10 w-3/4 mx-auto mb-4" />
-          <Skeleton className="h-6 w-full max-w-2xl mx-auto mb-8" />
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Skeleton className="h-12 w-36" />
-            <Skeleton className="h-12 w-48" />
+        <section className="text-center py-16 md:py-24 lg:py-32 px-4 bg-card dark:bg-secondary/30 rounded-lg shadow-lg">
+          <Skeleton className="h-12 w-3/4 md:w-2/3 mx-auto mb-6" />
+          <Skeleton className="h-7 w-full max-w-3xl mx-auto mb-10" />
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+            <Skeleton className="h-12 w-40" />
+            <Skeleton className="h-12 w-52" />
           </div>
         </section>
         {/* Service Previews Skeleton */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
           {[1, 2].map((i) => (
-            <Card key={`service-skel-${i}`} className="shadow-lg flex flex-col">
-              <CardHeader className="p-4 sm:p-6">
+            <Card key={`service-skel-${i}`} className="shadow-xl flex flex-col bg-card dark:bg-secondary/40">
+              <CardHeader className="p-5 sm:p-6">
                 <Skeleton className="h-8 w-3/5 mb-2" />
-                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-5 w-4/5" />
               </CardHeader>
-              <CardContent className="flex-grow p-4 sm:p-6 space-y-2">
+              <CardContent className="flex-grow p-5 sm:p-6 space-y-3">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-10 w-28 mt-4" />
+                <Skeleton className="h-11 w-32 mt-5" />
               </CardContent>
             </Card>
           ))}
         </section>
         {/* How it Works Skeleton */}
-        <section className="text-center py-10 md:py-12 lg:py-16 px-4">
-          <Skeleton className="h-9 w-1/2 mx-auto mb-4" />
-          <Skeleton className="h-6 w-full max-w-xl mx-auto mb-8" />
-          <Skeleton className="h-12 w-40 mx-auto" />
+        <section className="text-center py-16 md:py-20 lg:py-24 px-4 bg-muted/50 dark:bg-muted/20 rounded-lg">
+          <Skeleton className="h-10 w-1/2 md:w-2/5 mx-auto mb-5" />
+          <Skeleton className="h-6 w-full max-w-2xl mx-auto mb-10" />
+          <Skeleton className="h-12 w-44 mx-auto" />
         </section>
       </div>
     );
@@ -97,68 +90,68 @@ export default function Home() {
 
 
   return (
-    <div className="space-y-8 md:space-y-12 lg:space-y-16">
-      <section className="text-center py-12 md:py-16 lg:py-20 px-4 bg-card dark:bg-secondary/30 rounded-lg shadow-md">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 text-primary">
+    <div className="space-y-12 md:space-y-16 lg:space-y-20">
+      <section className="text-center py-16 md:py-24 lg:py-32 px-4 sm:px-6 bg-card dark:bg-secondary/30 rounded-xl shadow-xl">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6 text-primary">
           {translations.pageTitle}
         </h1>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
+        <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-10 max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
           {translations.pageDescription}
         </p>
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Button asChild size="lg" className="w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+          <Button asChild size="lg" className="w-full sm:w-auto text-base sm:text-lg py-3 px-8">
             <Link href="/contact">{translations.requestHelpButton}</Link>
           </Button>
-          <Button variant="outline" size="lg" asChild className="w-full sm:w-auto">
-            <Link href="/services">{translations.learnMoreButton}</Link>
+          <Button variant="outline" size="lg" asChild className="w-full sm:w-auto text-base sm:text-lg py-3 px-8">
+            <Link href="/services">{translations.learnMoreButton} <ArrowRight className="ml-2 h-5 w-5"/></Link>
           </Button>
         </div>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/30">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
-              <Users className="text-primary h-5 w-5 md:h-6 md:w-6" />
+        <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/40 rounded-xl overflow-hidden">
+          <CardHeader className="p-5 sm:p-7">
+            <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl">
+              <Users className="text-primary h-7 w-7 md:h-8 md:w-8" />
               {translations.clubsTitle}
             </CardTitle>
-            <CardDescription>{translations.clubsDescription}</CardDescription>
+            <CardDescription className="text-base">{translations.clubsDescription}</CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col p-4 sm:p-6">
-            <p className="mb-4 text-muted-foreground flex-grow">
+          <CardContent className="flex-grow flex flex-col p-5 sm:p-7">
+            <p className="mb-5 text-muted-foreground flex-grow text-base">
              {translations.clubsText}
             </p>
-            <Button variant="link" asChild className="px-0 self-start mt-auto text-primary hover:text-primary/80">
-              <Link href="/services#vereine">{translations.viewDetailsButton}</Link>
+            <Button variant="link" asChild className="px-0 self-start mt-auto text-primary hover:text-primary/80 font-semibold text-base group">
+              <Link href="/services#vereine">{translations.viewDetailsButton} <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-1 transition-transform"/></Link>
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/30">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
-              <User className="text-primary h-5 w-5 md:h-6 md:w-6" />
+        <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/40 rounded-xl overflow-hidden">
+          <CardHeader className="p-5 sm:p-7">
+            <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl">
+              <User className="text-primary h-7 w-7 md:h-8 md:w-8" />
               {translations.individualsTitle}
             </CardTitle>
-             <CardDescription>{translations.individualsDescription}</CardDescription>
+             <CardDescription className="text-base">{translations.individualsDescription}</CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col p-4 sm:p-6">
-            <p className="mb-4 text-muted-foreground flex-grow">
+          <CardContent className="flex-grow flex flex-col p-5 sm:p-7">
+            <p className="mb-5 text-muted-foreground flex-grow text-base">
              {translations.individualsText}
             </p>
-             <Button variant="link" asChild className="px-0 self-start mt-auto text-primary hover:text-primary/80">
-              <Link href="/services#privatpersonen">{translations.viewDetailsButton}</Link>
+             <Button variant="link" asChild className="px-0 self-start mt-auto text-primary hover:text-primary/80 font-semibold text-base group">
+              <Link href="/services#privatpersonen">{translations.viewDetailsButton} <ArrowRight className="ml-1.5 h-4 w-4 group-hover:translate-x-1 transition-transform"/></Link>
             </Button>
           </CardContent>
         </Card>
       </section>
 
-       <section className="text-center py-10 md:py-12 lg:py-16 px-4">
-        <h2 className="text-2xl md:text-3xl font-semibold mb-4">{translations.howItWorksTitle}</h2>
-        <p className="text-muted-foreground mb-8 max-w-md md:max-w-xl lg:max-w-2xl mx-auto">
+       <section className="text-center py-16 md:py-20 lg:py-24 px-4 sm:px-6 bg-muted/50 dark:bg-muted/20 rounded-xl">
+        <h2 className="text-3xl md:text-4xl font-semibold mb-5">{translations.howItWorksTitle}</h2>
+        <p className="text-muted-foreground mb-10 max-w-md md:max-w-xl lg:max-w-2xl mx-auto text-lg">
          {translations.howItWorksDescription}
         </p>
-        <Button variant="accent" size="lg" asChild>
+        <Button variant="accent" size="lg" asChild className="text-base sm:text-lg py-3 px-8">
            <Link href="/how-it-works">{translations.howItWorksButton}</Link>
         </Button>
       </section>

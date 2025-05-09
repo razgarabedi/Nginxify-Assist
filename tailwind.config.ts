@@ -10,9 +10,9 @@ export default {
   ],
   theme: {
   	extend: {
-      fontFamily: { // Add fontFamily definition
-        sans: ['var(--font-geist-sans)'],
-        mono: ['var(--font-geist-mono)'],
+      fontFamily: { 
+        sans: ['var(--font-geist-sans)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"', '"Noto Color Emoji"'],
+        mono: ['var(--font-geist-mono)', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', '"Liberation Mono"', '"Courier New"', 'monospace'],
       },
   		colors: {
   			background: 'hsl(var(--background))',
@@ -92,11 +92,62 @@ export default {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+      typography: (theme: (path: string) => any) => ({
+        DEFAULT: {
+          css: {
+            color: theme('colors.foreground'),
+            a: {
+              color: theme('colors.primary.DEFAULT'),
+              '&:hover': {
+                color: theme('colors.primary.DEFAULT / 0.8') ,
+              },
+            },
+            h1: {
+              color: theme('colors.foreground'),
+              fontSize: theme('fontSize.3xl'),
+              '@screen sm': {
+                fontSize: theme('fontSize.4xl'),
+              },
+              '@screen lg': {
+                fontSize: theme('fontSize.5xl'),
+              },
+            },
+            h2: {
+              color: theme('colors.foreground'),
+              fontSize: theme('fontSize.2xl'),
+              '@screen sm': {
+                fontSize: theme('fontSize.3xl'),
+              },
+              '@screen lg': {
+                fontSize: theme('fontSize.4xl'),
+              },
+            },
+            h3: {
+              color: theme('colors.foreground'),
+              fontSize: theme('fontSize.xl'),
+              '@screen sm': {
+                fontSize: theme('fontSize.2xl'),
+              },
+              '@screen lg': {
+                fontSize: theme('fontSize.3xl'),
+              },
+            },
+            'p, ul, ol, blockquote': {
+              fontSize: theme('fontSize.base'),
+              '@screen sm': {
+                fontSize: theme('fontSize.lg'),
+              },
+            },
+            // Add more overrides as needed for other prose elements
+          },
+        },
+      }),
   	}
   },
    plugins: [
      require("tailwindcss-animate"),
-     require('@tailwindcss/typography'), // Add typography plugin
+     require('@tailwindcss/typography'), 
    ],
 } satisfies Config;
+

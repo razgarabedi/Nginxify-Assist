@@ -10,12 +10,6 @@ import React, { useEffect, useState } from 'react';
 import type { HowItWorksContentData } from '@/lib/content-types';
 import { getContent } from '@/actions/content-actions';
 import { Skeleton } from '@/components/ui/skeleton';
-// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
-
-// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
-
-// Removed generateMetadata function as it's not allowed in client components.
-// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 export default function HowItWorksPage() {
@@ -42,16 +36,16 @@ export default function HowItWorksPage() {
     return (
       <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
         <section className="text-center px-4 mb-10 md:mb-12 lg:mb-16">
-          <Skeleton className="h-10 w-1/2 mx-auto mb-4" />
-          <Skeleton className="h-6 w-3/4 mx-auto" />
+          <Skeleton className="h-12 w-1/2 mx-auto mb-5" />
+          <Skeleton className="h-7 w-3/4 mx-auto" />
         </section>
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-12 lg:mb-16">
           {[...Array(6)].map((_, i) => <InfoCardSkeleton key={i} />)}
         </section>
-        <section className="text-center py-10 md:py-12 lg:py-16 bg-card dark:bg-secondary/30 rounded-lg shadow-md mt-10 md:mt-12 px-4">
-          <Skeleton className="h-8 w-1/3 mx-auto mb-4" />
-          <Skeleton className="h-5 w-1/2 mx-auto mb-6" />
-          <Skeleton className="h-12 w-36 mx-auto" />
+        <section className="text-center py-12 md:py-16 lg:py-20 bg-card dark:bg-secondary/30 rounded-xl shadow-lg mt-10 md:mt-12 px-4">
+          <Skeleton className="h-9 w-1/3 mx-auto mb-5" />
+          <Skeleton className="h-6 w-1/2 mx-auto mb-8" />
+          <Skeleton className="h-12 w-40 mx-auto" />
         </section>
       </div>
     );
@@ -82,30 +76,30 @@ export default function HowItWorksPage() {
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
       <section className="text-center px-4 mb-10 md:mb-12 lg:mb-16">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">{translations.pageTitle}</h1>
-        <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-5">{translations.pageTitle}</h1>
+        <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
           {translations.pageDescription}
         </p>
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-12 lg:mb-16">
         <InfoCard
-          icon={<Heart className="text-primary h-6 w-6" />}
+          icon={<Heart className="text-primary h-7 w-7 md:h-8 md:w-8" />}
           title={translations.volunteerTitle}
           description={translations.volunteerDescription}
         />
         <InfoCard
-          icon={<Handshake className="text-primary h-6 w-6" />}
+          icon={<Handshake className="text-primary h-7 w-7 md:h-8 md:w-8" />}
           title={translations.costTitle}
           description={translations.costDescription}
         />
          <InfoCard
-          icon={<MessageSquare className="text-primary h-6 w-6" />}
+          icon={<MessageSquare className="text-primary h-7 w-7 md:h-8 md:w-8" />}
           title={translations.requestTitle}
           description={
             <>
                 {translations.requestDescriptionPart1}
-                <Link href="/contact" className="text-primary hover:underline font-medium">
+                <Link href="/contact" className="text-primary hover:underline font-semibold">
                   {translations.requestDescriptionLink}
                 </Link>
                 {translations.requestDescriptionPart2}
@@ -113,28 +107,28 @@ export default function HowItWorksPage() {
           }
         />
         <InfoCard
-          icon={<Clock className="text-primary h-6 w-6" />}
+          icon={<Clock className="text-primary h-7 w-7 md:h-8 md:w-8" />}
           title={translations.expectationTitle}
           description={translations.expectationDescription}
         />
          <InfoCard
-          icon={<Users className="text-primary h-6 w-6" />}
+          icon={<Users className="text-primary h-7 w-7 md:h-8 md:w-8" />}
           title={translations.whoTitle}
           description={translations.whoDescription}
         />
          <InfoCard
-          icon={<Gift className="text-primary h-6 w-6" />}
+          icon={<Gift className="text-primary h-7 w-7 md:h-8 md:w-8" />}
           title={translations.donationsTitle}
           description={translations.donationsDescription}
         />
       </section>
 
-       <section className="text-center py-10 md:py-12 lg:py-16 bg-card dark:bg-secondary/30 rounded-lg shadow-md mt-10 md:mt-12 px-4">
-         <h2 className="text-xl md:text-2xl font-semibold mb-4">{translations.ctaTitle}</h2>
-         <p className="text-muted-foreground mb-6 max-w-md md:max-w-xl lg:max-w-2xl mx-auto">
+       <section className="text-center py-12 md:py-16 lg:py-20 bg-card dark:bg-secondary/30 rounded-xl shadow-lg mt-10 md:mt-12 px-4 sm:px-6">
+         <h2 className="text-2xl md:text-3xl font-semibold mb-5">{translations.ctaTitle}</h2>
+         <p className="text-muted-foreground mb-8 max-w-md md:max-w-xl lg:max-w-2xl mx-auto text-lg">
            {translations.ctaDescription}
          </p>
-         <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
+         <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto text-base sm:text-lg py-3 px-8">
            <Link href="/contact">{translations.ctaButton}</Link>
          </Button>
        </section>
@@ -150,12 +144,12 @@ interface InfoCardProps {
 
 function InfoCard({ icon, title, description }: InfoCardProps) {
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/30">
-      <CardHeader className="items-center text-center pb-3 pt-6 px-4 sm:px-6">
-        <div className="mb-3 rounded-full bg-primary/10 p-3 inline-flex">{icon}</div>
-        <CardTitle className="text-lg md:text-xl">{title}</CardTitle>
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/30 rounded-xl">
+      <CardHeader className="items-center text-center pb-4 pt-7 px-5 sm:px-6">
+        <div className="mb-3.5 rounded-full bg-primary/10 p-4 inline-flex">{icon}</div>
+        <CardTitle className="text-xl md:text-2xl">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="text-center text-sm text-muted-foreground flex-grow px-4 sm:px-6 pb-6">
+      <CardContent className="text-center text-base text-muted-foreground flex-grow px-5 sm:px-6 pb-7">
         {typeof description === 'string' ? <p>{description}</p> : description}
       </CardContent>
     </Card>
@@ -164,15 +158,15 @@ function InfoCard({ icon, title, description }: InfoCardProps) {
 
 function InfoCardSkeleton() {
   return (
-    <Card className="shadow-lg flex flex-col">
-      <CardHeader className="items-center text-center pb-3 pt-6 px-4 sm:px-6">
-        <Skeleton className="h-12 w-12 rounded-full mb-3" />
-        <Skeleton className="h-6 w-3/4" />
+    <Card className="shadow-lg flex flex-col rounded-xl">
+      <CardHeader className="items-center text-center pb-4 pt-7 px-5 sm:px-6">
+        <Skeleton className="h-14 w-14 rounded-full mb-3.5" />
+        <Skeleton className="h-7 w-3/4" />
       </CardHeader>
-      <CardContent className="text-center flex-grow px-4 sm:px-6 pb-6 space-y-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-5/6" />
+      <CardContent className="text-center flex-grow px-5 sm:px-6 pb-7 space-y-2.5">
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-5/6" />
       </CardContent>
     </Card>
   );
