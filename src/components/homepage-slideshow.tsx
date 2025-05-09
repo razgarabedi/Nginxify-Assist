@@ -130,7 +130,7 @@ const HomepageSlideshow: FC = () => {
   if (!isMounted) {
     // Return a simple placeholder or skeleton for SSR / initial load to avoid layout shift
     return (
-        <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+        <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
            {/* Placeholder content can be a simple div or a more elaborate skeleton */}
            <div className="text-center p-4 md:p-8">
              {/* Basic skeleton for text block */}
@@ -142,7 +142,7 @@ const HomepageSlideshow: FC = () => {
   const currentSlide = slidesData[currentIndex];
 
   return (
-    <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
+    <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
       {slidesData.map((slide, index) => (
         <div
           key={slide.id}
@@ -158,7 +158,7 @@ const HomepageSlideshow: FC = () => {
             style={{ objectFit: 'cover' }}
             priority={index === 0} // Prioritize loading for the first slide
             data-ai-hint={slide.imageHint}
-            sizes="100vw" // Simplest for full-width hero, can be refined
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw" 
           />
         </div>
       ))}
@@ -168,11 +168,11 @@ const HomepageSlideshow: FC = () => {
 
 
       {/* Text content and CTA */}
-      <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6 sm:p-8 md:p-12 lg:p-16 z-20 pb-16 md:pb-20">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight drop-shadow-lg">
+      <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6 sm:p-8 md:p-12 lg:p-16 z-20 pb-16 md:pb-20 drop-shadow-lg">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight">
           {texts[currentSlide.titleKey]}
         </h2>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-5 sm:mb-6 md:mb-8 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto drop-shadow-lg">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-5 sm:mb-6 md:mb-8 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto">
           {texts[currentSlide.descriptionKey]}
         </p>
         {currentSlide.ctaTextKey && currentSlide.ctaLink && texts[currentSlide.ctaTextKey] && (
