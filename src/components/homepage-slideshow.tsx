@@ -8,144 +8,69 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface SlideData {
-  id: number;
-  imageUrl: string;
-  imageHint: string; 
-  altText: string;
-  titleKey: keyof SlideTextContent;
-  descriptionKey: keyof SlideTextContent;
-  ctaTextKey?: keyof SlideTextContent;
-  ctaLink?: string;
-}
-
-interface SlideTextContent {
-  welcomeTitle: string;
-  welcomeDescription: string;
-  learnMore: string;
-  websiteHelpTitle: string;
-  websiteHelpDescription: string;
-  ourServices: string;
-  volunteerTitle: string;
-  volunteerDescription: string;
-  requestHelp: string;
-}
-
-// Static text content for slides - can be expanded or moved to a language context if needed
-const slideTexts: Record<'de' | 'en', SlideTextContent> = {
-  de: {
-    welcomeTitle: 'Willkommen bei Nginxify Assist!',
-    welcomeDescription: 'Ehrenamtliche IT-Unterstützung für Vereine und Einzelpersonen. Wir helfen Ihnen, die digitale Welt zu meistern.',
-    learnMore: 'Mehr Erfahren',
-    websiteHelpTitle: 'Hilfe bei Ihrer Webseite benötigt?',
-    websiteHelpDescription: 'Von der grundlegenden Einrichtung bis zur Beratung zu Online-Tools – unsere Freiwilligen helfen gerne.',
-    ourServices: 'Unsere Leistungen',
-    volunteerTitle: 'Unterstützung durch Freiwillige, für die Gemeinschaft',
-    volunteerDescription: 'Engagierte Technik-Enthusiasten bieten ihre Zeit und Fähigkeiten an.',
-    requestHelp: 'Hilfe Anfragen',
-  },
-  en: {
-    welcomeTitle: 'Welcome to Nginxify Assist!',
-    welcomeDescription: 'Volunteer IT support for clubs and individuals. We help you navigate the digital world.',
-    learnMore: 'Learn More',
-    websiteHelpTitle: 'Need Help with Your Website?',
-    websiteHelpDescription: 'From basic setup to advice on online tools, our volunteers are here to assist.',
-    ourServices: 'Our Services',
-    volunteerTitle: 'Support by Volunteers, For the Community',
-    volunteerDescription: 'Passionate tech enthusiasts offering their time and skills.',
-    requestHelp: 'Request Help',
-  },
-};
-
-
-const slidesData: SlideData[] = [
-  {
-    id: 1,
-    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBzdXBwb3J0JTIwdGVhbXxlbnwwfHx8fDE3MjM4MDQwODV8MA&ixlib=rb-4.0.3&q=80&w=1600',
-    imageHint: 'community support team',
-    altText: 'Diverse group of people collaborating with technology',
-    titleKey: 'welcomeTitle',
-    descriptionKey: 'welcomeDescription',
-    ctaTextKey: 'learnMore',
-    ctaLink: '/how-it-works',
-  },
-  {
-    id: 2,
-    imageUrl: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwY3JlYXRpb24lMjBsYXB0b3B8ZW58MHx8fHwxNzIzODA0MTM3fDA&ixlib=rb-4.0.3&q=80&w=1600',
-    imageHint: 'website creation laptop',
-    altText: 'Laptop screen showing website design process',
-    titleKey: 'websiteHelpTitle',
-    descriptionKey: 'websiteHelpDescription',
-    ctaTextKey: 'ourServices',
-    ctaLink: '/services',
-  },
-  {
-    id: 3,
-    imageUrl: 'https://images.unsplash.com/photo-1573496774439-972004891aed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx2b2x1bnRlZXIlMjBoZWxwaW5nJTIwY29tcHV0ZXJ8ZW58MHx8fHwxNzIzODA0MTcxfDA&ixlib=rb-4.0.3&q=80&w=1600',
-    imageHint: 'volunteer helping computer',
-    altText: 'Friendly volunteer assisting someone with a computer',
-    titleKey: 'volunteerTitle',
-    descriptionKey: 'volunteerDescription',
-    ctaTextKey: 'requestHelp',
-    ctaLink: '/contact',
-  },
-];
+import type { SlideContentData } from '@/lib/content-types'; // Import the shared type
+import { useLanguage } from '@/context/language-context';
 
 const AUTOPLAY_INTERVAL = 7000; // 7 seconds
 
-const HomepageSlideshow: FC = () => {
+interface HomepageSlideshowProps {
+  slides: SlideContentData[];
+}
+
+const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [texts, setTexts] = useState(slideTexts.de); 
   const [isMounted, setIsMounted] = useState(false);
+  const { language } = useLanguage();
 
   useEffect(() => {
     setIsMounted(true);
-    // Set language based on HTML lang attribute after mount
-    // This part depends on how language is globally managed. Assuming a global context or prop.
-    // For now, we'll default to 'de' or detect from html lang if possible.
-    const currentLang = document.documentElement.lang || 'de';
-    setTexts(slideTexts[currentLang as 'de' | 'en'] || slideTexts.de);
   }, []);
 
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? slidesData.length - 1 : prevIndex - 1));
-  }, []);
+    setCurrentIndex((prevIndex) => (prevIndex === 0 ? slides.length - 1 : prevIndex - 1));
+  }, [slides.length]);
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((prevIndex) => (prevIndex === slidesData.length - 1 ? 0 : prevIndex + 1));
-  }, []);
+    setCurrentIndex((prevIndex) => (prevIndex === slides.length - 1 ? 0 : prevIndex + 1));
+  }, [slides.length]);
 
   const goToSlide = (slideIndex: number) => {
     setCurrentIndex(slideIndex);
   };
 
   useEffect(() => {
-    if (!isMounted) return; 
+    if (!isMounted || slides.length === 0) return; 
     const timer = setTimeout(goToNext, AUTOPLAY_INTERVAL);
     return () => clearTimeout(timer);
-  }, [currentIndex, goToNext, isMounted]);
+  }, [currentIndex, goToNext, isMounted, slides.length]);
 
-  if (!isMounted) {
-    // Return a simple placeholder or skeleton for SSR / initial load to avoid layout shift
+  if (!isMounted || slides.length === 0) {
     return (
         <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
-           {/* Placeholder content can be a simple div or a more elaborate skeleton */}
            <div className="text-center p-4 md:p-8">
-             {/* Basic skeleton for text block */}
+            <div className="animate-pulse">
+                <div className="h-10 w-3/4 sm:h-12 md:w-2/3 mx-auto mb-4 sm:mb-6 bg-muted-foreground/20 rounded-md"></div>
+                <div className="h-6 w-full sm:h-7 max-w-lg sm:max-w-xl mx-auto mb-8 sm:mb-10 bg-muted-foreground/20 rounded-md"></div>
+                <div className="h-11 w-36 sm:h-12 sm:w-40 mx-auto bg-muted-foreground/20 rounded-md"></div>
+            </div>
            </div>
         </section>
     );
   }
 
-  const currentSlide = slidesData[currentIndex];
+  const currentSlide = slides[currentIndex];
+  const title = language === 'de' ? currentSlide.title_de : currentSlide.title_en;
+  const description = language === 'de' ? currentSlide.description_de : currentSlide.description_en;
+  const altText = language === 'de' ? currentSlide.altText_de : currentSlide.altText_en;
+  const ctaText = language === 'de' ? currentSlide.ctaText_de : currentSlide.ctaText_en;
+
 
   return (
     <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl group">
-      {slidesData.map((slide, index) => (
+      {slides.map((slide, index) => (
         <div
-          key={slide.id}
+          key={slide.id || index}
           className={cn(
             "absolute inset-0 transition-opacity duration-1000 ease-in-out",
             index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
@@ -153,36 +78,34 @@ const HomepageSlideshow: FC = () => {
         >
           <Image
             src={slide.imageUrl}
-            alt={texts[slide.altText as keyof SlideTextContent] || slide.altText} // Use translated alt text if available
+            alt={language === 'de' ? slide.altText_de : slide.altText_en}
             fill
             style={{ objectFit: 'cover' }}
-            priority={index === 0} // Prioritize loading for the first slide
+            priority={index === 0} 
             data-ai-hint={slide.imageHint}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 50vw" 
           />
         </div>
       ))}
       
-      {/* Dark gradient overlay for text contrast */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-black/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent sm:bg-gradient-to-t sm:from-black/60 sm:via-black/30 sm:to-transparent md:bg-gradient-to-r md:from-black/50 md:to-transparent"></div>
 
-
-      {/* Text content and CTA */}
-      <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-6 sm:p-8 md:p-12 lg:p-16 z-20 pb-16 md:pb-20 drop-shadow-lg">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight">
-          {texts[currentSlide.titleKey]}
-        </h2>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-5 sm:mb-6 md:mb-8 max-w-md md:max-w-2xl lg:max-w-3xl mx-auto">
-          {texts[currentSlide.descriptionKey]}
-        </p>
-        {currentSlide.ctaTextKey && currentSlide.ctaLink && texts[currentSlide.ctaTextKey] && (
-          <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base sm:text-lg py-3 px-6 sm:px-8 rounded-lg shadow-lg transition-transform hover:scale-105">
-            <Link href={currentSlide.ctaLink}>{texts[currentSlide.ctaTextKey]}</Link>
-          </Button>
-        )}
+      <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-4 pb-12 sm:p-6 sm:pb-16 md:items-start md:justify-center md:text-left md:p-8 lg:p-12 xl:p-16 z-20">
+        <div className="md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-black/30 md:bg-transparent p-4 rounded-lg md:p-0">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight [text-shadow:_0_2px_4px_rgb(0_0_0_/_50%)]">
+            {title}
+          </h2>
+          <p className="text-base sm:text-lg md:text-xl text-gray-200 mb-5 sm:mb-6 md:mb-8 [text-shadow:_0_1px_3px_rgb(0_0_0_/_40%)]">
+            {description}
+          </p>
+          {ctaText && currentSlide.ctaLink && (
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-base sm:text-lg py-3 px-6 sm:px-8 rounded-lg shadow-lg transition-transform hover:scale-105">
+              <Link href={currentSlide.ctaLink}>{ctaText}</Link>
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Navigation Arrows */}
       <Button
         variant="ghost"
         size="icon"
@@ -202,9 +125,8 @@ const HomepageSlideshow: FC = () => {
         <ChevronRight className="h-6 w-6 md:h-7 md:w-7" />
       </Button>
 
-      {/* Dot Indicators */}
       <div className="absolute bottom-4 sm:bottom-5 md:bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex space-x-2">
-        {slidesData.map((_, slideIndex) => (
+        {slides.map((_, slideIndex) => (
           <button
             key={slideIndex}
             className={cn(
@@ -221,4 +143,3 @@ const HomepageSlideshow: FC = () => {
 };
 
 export default HomepageSlideshow;
-

@@ -1,6 +1,22 @@
 // src/lib/content-types.ts
 import type { Service as ServiceDefinition } from '@/lib/services-data';
 
+// Content for a single slide in the homepage slideshow
+export interface SlideContentData {
+  id: number; // or string, for keying and identification
+  imageUrl: string;
+  imageHint: string;
+  altText_de: string;
+  altText_en: string;
+  title_de: string;
+  title_en: string;
+  description_de: string;
+  description_en: string;
+  ctaText_de?: string;
+  ctaText_en?: string;
+  ctaLink?: string;
+}
+
 // Content for the Home page
 export interface HomeContentData {
   pageTitle_de: string;
@@ -31,6 +47,7 @@ export interface HomeContentData {
   howItWorksDescription_en: string;
   howItWorksButton_de: string;
   howItWorksButton_en: string;
+  slideshowItems: SlideContentData[]; // Added for slideshow
 }
 
 // Content for the Services page (meta and section descriptions)

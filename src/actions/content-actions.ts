@@ -1,13 +1,61 @@
+
 'use server';
 
 import fs from 'fs/promises';
 import path from 'path';
-import type { AllContentData, ServiceItemContentData } from '@/lib/content-types';
+import type { AllContentData, ServiceItemContentData, HomeContentData, SlideContentData } from '@/lib/content-types';
 import { allServices as initialServiceDefinitions } from '@/lib/services-data';
+
+
+const getInitialSlideshowData = (): SlideContentData[] => [
+  {
+    id: 1,
+    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBzdXBwb3J0JTIwdGVhbXxlbnwwfHx8fDE3MjM4MDQwODV8MA&ixlib=rb-4.0.3&q=80&w=1600',
+    imageHint: 'community support team',
+    altText_de: 'Gruppe von Menschen die zusammenarbeiten mit Technologie',
+    altText_en: 'Diverse group of people collaborating with technology',
+    title_de: 'Willkommen bei Nginxify Assist!',
+    title_en: 'Welcome to Nginxify Assist!',
+    description_de: 'Ehrenamtliche IT-Unterstützung für Vereine und Einzelpersonen. Wir helfen Ihnen, die digitale Welt zu meistern.',
+    description_en: 'Volunteer IT support for clubs and individuals. We help you navigate the digital world.',
+    ctaText_de: 'Mehr Erfahren',
+    ctaText_en: 'Learn More',
+    ctaLink: '/how-it-works',
+  },
+  {
+    id: 2,
+    imageUrl: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwY3JlYXRpb24lMjBsYXB0b3B8ZW58MHx8fHwxNzIzODA0MTM3fDA&ixlib=rb-4.0.3&q=80&w=1600',
+    imageHint: 'website creation laptop',
+    altText_de: 'Laptop Bildschirm zeigt den Prozess der Webseitenerstellung',
+    altText_en: 'Laptop screen showing website design process',
+    title_de: 'Hilfe bei Ihrer Webseite benötigt?',
+    title_en: 'Need Help with Your Website?',
+    description_de: 'Von der grundlegenden Einrichtung bis zur Beratung zu Online-Tools – unsere Freiwilligen helfen gerne.',
+    description_en: 'From basic setup to advice on online tools, our volunteers are here to assist.',
+    ctaText_de: 'Unsere Leistungen',
+    ctaText_en: 'Our Services',
+    ctaLink: '/services',
+  },
+  {
+    id: 3,
+    imageUrl: 'https://images.unsplash.com/photo-1573496774439-972004891aed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx2b2x1bnRlZXIlMjBoZWxwaW5nJTIwY29tcHV0ZXJ8ZW58MHx8fHwxNzIzODA0MTcxfDA&ixlib=rb-4.0.3&q=80&w=1600',
+    imageHint: 'volunteer helping computer',
+    altText_de: 'Freundlicher Freiwilliger hilft jemandem am Computer',
+    altText_en: 'Friendly volunteer assisting someone with a computer',
+    title_de: 'Unterstützung durch Freiwillige, für die Gemeinschaft',
+    title_en: 'Support by Volunteers, For the Community',
+    description_de: 'Engagierte Technik-Enthusiasten bieten ihre Zeit und Fähigkeiten an.',
+    description_en: 'Passionate tech enthusiasts offering their time and skills.',
+    ctaText_de: 'Hilfe Anfragen',
+    ctaText_en: 'Request Help',
+    ctaLink: '/contact',
+  },
+];
+
 
 // Helper functions (could be moved to admin dashboard or a shared lib if also needed client-side for initial state)
 // These are copied here to be self-contained for default content generation
-const getInitialHomeContent = () => ({
+const getInitialHomeContent = (): HomeContentData => ({
   pageTitle_de: 'nginxify Hilfe: Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen',
   pageTitle_en: 'Nginxify Help: Volunteer IT Support for Clubs & Individuals',
   pageDescription_de: 'Wir helfen digital – kostenlos oder gegen eine freiwillige Spende. Unsere Mission ist es, gemeinnützige Organisationen und Privatpersonen mit IT-Herausforderungen zu unterstützen.',
@@ -36,6 +84,7 @@ const getInitialHomeContent = () => ({
   howItWorksDescription_en: 'Our support is based on volunteer work. Learn more about the process and how you can request help.',
   howItWorksButton_de: 'So Funktioniert\'s',
   howItWorksButton_en: 'How It Works',
+  slideshowItems: getInitialSlideshowData(),
 });
 
 const getInitialServicesPageContent = () => ({
@@ -169,11 +218,16 @@ export async function getContent(): Promise<AllContentData> {
     await fs.access(contentFilePath); // Check if file exists
     const fileContent = await fs.readFile(contentFilePath, 'utf-8');
     const jsonData = JSON.parse(fileContent) as AllContentData;
-    // Basic validation: check if top-level keys exist
-    if (jsonData && jsonData.home && jsonData.servicesPage && jsonData.servicesItems && jsonData.howItWorks && jsonData.contact) {
+    // Basic validation: check if top-level keys exist and home has slideshowItems
+    if (jsonData && jsonData.home && jsonData.home.slideshowItems && jsonData.servicesPage && jsonData.servicesItems && jsonData.howItWorks && jsonData.contact) {
+      // Ensure slideshowItems is an array, otherwise fallback
+      if (!Array.isArray(jsonData.home.slideshowItems)) {
+        console.warn('Home content slideshowItems is not an array, returning default slideshow content.');
+        jsonData.home.slideshowItems = getInitialSlideshowData();
+      }
       return jsonData;
     }
-    console.warn('Content file is missing some keys, returning default content.');
+    console.warn('Content file is missing some keys or slideshowItems, returning default content.');
     return getDefaultContent();
   } catch (error) {
     // If file doesn't exist or is invalid JSON, return default content
@@ -181,6 +235,7 @@ export async function getContent(): Promise<AllContentData> {
     const defaultContent = getDefaultContent();
     // Attempt to save the default content to create the file
     try {
+      await fs.mkdir(path.dirname(contentFilePath), { recursive: true });
       await fs.writeFile(contentFilePath, JSON.stringify(defaultContent, null, 2), 'utf-8');
       console.log('Default content.json created.');
     } catch (saveError) {
@@ -201,3 +256,6 @@ export async function saveContent(data: AllContentData): Promise<{ success: bool
     return { success: false, message: `Failed to save content: ${(error as Error).message}` };
   }
 }
+
+// Export initial data getters for admin dashboard fallback
+export { getInitialHomeContent as getInitialHomeData, getInitialSlideshowData };

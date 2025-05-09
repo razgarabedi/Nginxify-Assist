@@ -12,51 +12,23 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogOut, Save, FileText, HomeIcon, SettingsIcon, MailIcon, Briefcase } from 'lucide-react';
+import { Loader2, LogOut, Save, FileText, HomeIcon, SettingsIcon, MailIcon, Briefcase, ImagesIcon, Trash2, PlusCircle } from 'lucide-react';
 
 import { allServices as serviceDefinitions, type Service as ServiceDefinition } from '@/lib/services-data';
 import { 
   getContent, 
   saveContent,
+  getInitialHomeData, // Renamed for clarity from getInitialHomeContent
+  getInitialSlideshowData,
   type AllContentData,
   type HomeContentData,
   type ServicesPageData,
   type ServiceItemContentData,
   type HowItWorksContentData,
-  type ContactContentData
+  type ContactContentData,
+  type SlideContentData
 } from '@/actions/content-actions';
 
-// Helper function to get initial content structure (only for fallback if JSON is empty/corrupt)
-const getInitialHomeData = (): HomeContentData => ({
-  pageTitle_de: 'nginxify Hilfe: Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen',
-  pageTitle_en: 'Nginxify Help: Volunteer IT Support for Clubs & Individuals',
-  pageDescription_de: 'Wir helfen digital – kostenlos oder gegen eine freiwillige Spende. Unsere Mission ist es, gemeinnützige Organisationen und Privatpersonen mit IT-Herausforderungen zu unterstützen.',
-  pageDescription_en: 'We help digitally – free of charge or for a voluntary donation. Our mission is to support non-profit organizations and private individuals with IT challenges.',
-  requestHelpButton_de: 'Hilfe Anfordern',
-  requestHelpButton_en: 'Request Help',
-  learnMoreButton_de: 'Mehr über unsere Leistungen',
-  learnMoreButton_en: 'Learn More About Our Services',
-  clubsTitle_de: 'Für Vereine & Organisationen',
-  clubsTitle_en: 'For Clubs & Organizations',
-  clubsDescription_de: 'Unterstützung für gemeinnützige Projekte.',
-  clubsDescription_en: 'Support for non-profit projects.',
-  clubsText_de: 'Wir bieten grundlegende Hilfe bei der Erstellung von Webseiten, der Einrichtung von Online-Tools, oder bei allgemeinen IT-Fragen, damit Sie sich auf Ihre Kernarbeit konzentrieren können.',
-  clubsText_en: 'We offer basic help with website creation, setting up online tools, or general IT questions, so you can focus on your core work.',
-  individualsTitle_de: 'Für Privatpersonen',
-  individualsTitle_en: 'For Individuals',
-  individualsDescription_de: 'Hilfe bei alltäglichen IT-Problemen.',
-  individualsDescription_en: 'Help with everyday IT problems.',
-  individualsText_de: 'Brauchen Sie Hilfe mit Ihrem Computer, Smartphone oder haben Sie Fragen zur Online-Sicherheit? Wir unterstützen Sie bei einfachen IT-Herausforderungen.',
-  individualsText_en: 'Need help with your computer, smartphone, or have questions about online security? We support you with simple IT challenges.',
-  viewDetailsButton_de: 'Details ansehen',
-  viewDetailsButton_en: 'View Details',
-  howItWorksTitle_de: 'Wie funktioniert unsere Hilfe?',
-  howItWorksTitle_en: 'How does our help work?',
-  howItWorksDescription_de: 'Unsere Unterstützung basiert auf ehrenamtlichem Engagement. Erfahren Sie mehr über den Prozess und wie Sie Hilfe anfordern können.',
-  howItWorksDescription_en: 'Our support is based on volunteer work. Learn more about the process and how you can request help.',
-  howItWorksButton_de: 'So Funktioniert\'s',
-  howItWorksButton_en: 'How It Works',
-});
 
 const getInitialServicesPageData = (): ServicesPageData => ({
   pageTitle_de: 'Unsere Leistungen',
@@ -174,7 +146,14 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [homeContent, setHomeContent] = useState<HomeContentData>(getInitialHomeData);
+  const [homeContent, setHomeContent] = useState<Omit<HomeContentData, 'slideshowItems'>>(
+    () => {
+      const initialHome = getInitialHomeData();
+      const { slideshowItems, ...rest } = initialHome;
+      return rest;
+    }
+  );
+  const [slideshowItems, setSlideshowItems] = useState<SlideContentData[]>(getInitialSlideshowData());
   const [servicesPageContent, setServicesPageContent] = useState<ServicesPageData>(getInitialServicesPageData);
   const [servicesItemsContent, setServicesItemsContent] = useState<Record<string, ServiceItemContentData>>({});
   const [howItWorksContent, setHowItWorksContent] = useState<HowItWorksContentData>(getInitialHowItWorksData);
@@ -198,7 +177,10 @@ export default function AdminDashboardPage() {
         try {
           const data = await getContent();
           
-          setHomeContent(data.home || getInitialHomeData());
+          const { slideshowItems: loadedSlideshowItems, ...loadedHomeContent } = data.home || getInitialHomeData();
+          setHomeContent(loadedHomeContent);
+          setSlideshowItems(loadedSlideshowItems || getInitialSlideshowData());
+
           setServicesPageContent(data.servicesPage || getInitialServicesPageData());
           setHowItWorksContent(data.howItWorks || getInitialHowItWorksData());
           setContactContent(data.contact || getInitialContactData());
@@ -230,7 +212,9 @@ export default function AdminDashboardPage() {
             description: 'Could not load website content. Using defaults.',
             variant: 'destructive',
           });
-          setHomeContent(getInitialHomeData());
+          const { slideshowItems: defaultSlides, ...defaultHome } = getInitialHomeData();
+          setHomeContent(defaultHome);
+          setSlideshowItems(defaultSlides);
           setServicesPageContent(getInitialServicesPageData());
           setHowItWorksContent(getInitialHowItWorksData());
           setContactContent(getInitialContactData());
@@ -250,16 +234,49 @@ export default function AdminDashboardPage() {
     loadPageContent();
   }, [isAuthenticated, toast]);
 
+  const handleSlideshowItemChange = useCallback((index: number, field: keyof SlideContentData, value: string | number) => {
+    setSlideshowItems(prev => {
+      const newSlides = [...prev];
+      // Type assertion because field is keyof SlideContentData, and value matches its type
+      (newSlides[index] as any)[field] = value; 
+      return newSlides;
+    });
+  }, []);
+
+  const addSlideshowItem = useCallback(() => {
+    setSlideshowItems(prev => [
+      ...prev,
+      {
+        id: prev.length > 0 ? Math.max(...prev.map(s => s.id)) + 1 : 1,
+        imageUrl: 'https://picsum.photos/1600/900',
+        imageHint: 'new slide',
+        altText_de: 'Neuer Slide Alt Text DE',
+        altText_en: 'New Slide Alt Text EN',
+        title_de: 'Neuer Slide Titel DE',
+        title_en: 'New Slide Title EN',
+        description_de: 'Neue Slide Beschreibung DE.',
+        description_en: 'New slide description EN.',
+        ctaText_de: 'Mehr erfahren',
+        ctaText_en: 'Learn More',
+        ctaLink: '/',
+      }
+    ]);
+  }, []);
+
+  const removeSlideshowItem = useCallback((indexToRemove: number) => {
+    setSlideshowItems(prev => prev.filter((_, index) => index !== indexToRemove));
+  }, []);
+
 
   const handleContentChange = useCallback((
-    pageKey: keyof AllContentData | 'servicesItems', 
-    field: string, // Base field name e.g., 'pageTitle', 'title'
+    pageKey: keyof Omit<AllContentData, 'home'> | 'homeFields' | 'servicesItems', 
+    field: string, 
     value: string, 
     lang?: 'de' | 'en', 
     serviceSlug?: string
   ) => {
     switch (pageKey) {
-      case 'home':
+      case 'homeFields': // For non-slideshow home fields
         setHomeContent(prev => ({ ...prev, [field + (lang ? `_${lang}` : '')]: value }));
         break;
       case 'servicesPage':
@@ -278,11 +295,11 @@ export default function AdminDashboardPage() {
       case 'servicesItems':
         if (serviceSlug && field) {
           let keyToUpdate: string;
-          if (lang) { // Bilingual field for servicesItems: titleDe, descriptionEn etc.
-            const capitalizedLang = lang.charAt(0).toUpperCase() + lang.slice(1); // 'de' -> 'De'
-            keyToUpdate = field + capitalizedLang; // e.g. titleDe, descriptionEn
-          } else { // Single language field for servicesItems: imageUrl, imageHint
-            keyToUpdate = field; // e.g. imageUrl, imageHint
+          if (lang) { 
+            const capitalizedLang = lang.charAt(0).toUpperCase() + lang.slice(1); 
+            keyToUpdate = field + capitalizedLang; 
+          } else { 
+            keyToUpdate = field; 
           }
           setServicesItemsContent(prev => ({
             ...prev,
@@ -300,7 +317,7 @@ export default function AdminDashboardPage() {
   const handleSaveAllContent = async () => {
     setIsSaving(prev => ({ ...prev, AllContent: true }));
     const allData: AllContentData = {
-      home: homeContent,
+      home: { ...homeContent, slideshowItems },
       servicesPage: servicesPageContent,
       servicesItems: servicesItemsContent,
       howItWorks: howItWorksContent,
@@ -323,47 +340,62 @@ export default function AdminDashboardPage() {
   };
   
   const renderBilingualField = (
-    pageKey: 'home' | 'servicesPage' | 'howItWorks' | 'contact' | 'servicesItems',
-    fieldName: string, // This is the base name, e.g., "pageTitle", "title"
+    sectionKey: 'homeFields' | 'servicesPage' | 'howItWorks' | 'contact' | 'servicesItems' | 'slideshowItem',
+    fieldName: string, 
     label: string,
     isTextarea = false,
-    serviceSlug?: string 
+    itemKey?: string | number // serviceSlug for servicesItems, index for slideshowItem
   ) => {
-    const idDe = `${pageKey}-${serviceSlug || ''}-${fieldName}-de`;
-    const idEn = `${pageKey}-${serviceSlug || ''}-${fieldName}-en`;
+    const idPrefix = `${sectionKey}-${itemKey || ''}-${fieldName}`;
+    const idDe = `${idPrefix}-de`;
+    const idEn = `${idPrefix}-en`;
 
     let valueDe: string = '';
     let valueEn: string = '';
+    let onChangeDe: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    let onChangeEn: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
-    if (pageKey === 'servicesItems' && serviceSlug) {
-        const itemContent = servicesItemsContent[serviceSlug];
+    if (sectionKey === 'slideshowItem' && typeof itemKey === 'number') {
+      const slide = slideshowItems[itemKey];
+      valueDe = (slide as any)[`${fieldName}_de`] || '';
+      valueEn = (slide as any)[`${fieldName}_en`] || '';
+      onChangeDe = (e) => handleSlideshowItemChange(itemKey, `${fieldName}_de` as keyof SlideContentData, e.target.value);
+      onChangeEn = (e) => handleSlideshowItemChange(itemKey, `${fieldName}_en` as keyof SlideContentData, e.target.value);
+    } else if (sectionKey === 'servicesItems' && typeof itemKey === 'string') {
+        const itemContent = servicesItemsContent[itemKey];
         if (itemContent) {
-            // For servicesItems, keys are like titleDe, titleEn
             valueDe = (itemContent as any)[`${fieldName}De`] || '';
             valueEn = (itemContent as any)[`${fieldName}En`] || '';
         }
-    } else if (pageKey === 'home') {
+        onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de', itemKey);
+        onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en', itemKey);
+    } else if (sectionKey === 'homeFields') {
         valueDe = (homeContent as any)[`${fieldName}_de`] || '';
         valueEn = (homeContent as any)[`${fieldName}_en`] || '';
-    } else if (pageKey === 'servicesPage') {
+        onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de');
+        onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en');
+    } else if (sectionKey === 'servicesPage') {
         valueDe = (servicesPageContent as any)[`${fieldName}_de`] || '';
         valueEn = (servicesPageContent as any)[`${fieldName}_en`] || '';
-    } else if (pageKey === 'howItWorks') {
+        onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de');
+        onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en');
+    } else if (sectionKey === 'howItWorks') {
         valueDe = (howItWorksContent as any)[`${fieldName}_de`] || '';
         valueEn = (howItWorksContent as any)[`${fieldName}_en`] || '';
-    } else if (pageKey === 'contact') {
-         // Assuming all bilingual contact fields use _de/_en, phoneInfoNumber is handled by renderSingleLanguageField
+        onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de');
+        onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en');
+    } else if (sectionKey === 'contact') {
         valueDe = (contactContent as any)[`${fieldName}_de`] || '';
         valueEn = (contactContent as any)[`${fieldName}_en`] || '';
+        onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de');
+        onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en');
+    } else {
+        // Fallback or error for unhandled sectionKey
+        return null;
     }
     
-    const onChangeDe = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
-      handleContentChange(pageKey, fieldName, e.target.value, 'de', serviceSlug);
-    const onChangeEn = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
-      handleContentChange(pageKey, fieldName, e.target.value, 'en', serviceSlug);
-
     return (
-      <div key={`${pageKey}-${serviceSlug || ''}-${fieldName}`} className="space-y-4 py-2">
+      <div key={idPrefix} className="space-y-4 py-2">
         <h4 className="font-medium col-span-full">{label}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           <div>
@@ -388,28 +420,32 @@ export default function AdminDashboardPage() {
   };
 
    const renderSingleLanguageField = (
-    pageKey: 'contact' | 'servicesItems', 
-    fieldName: string, // e.g., 'phoneInfoNumber', 'imageUrl', 'imageHint'
+    sectionKey: 'contact' | 'servicesItems' | 'slideshowItem', 
+    fieldName: string, 
     label: string,
     isTextarea = false,
-    serviceSlug?: string 
+    itemKey?: string | number 
     ) => {
     let value: string = '';
     let onChangeFunc: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
-    if (pageKey === 'contact') {
+    const id = `${sectionKey}-${itemKey || ''}-${fieldName}`;
+
+    if (sectionKey === 'slideshowItem' && typeof itemKey === 'number') {
+        const slide = slideshowItems[itemKey];
+        value = (slide as any)[fieldName] || '';
+        onChangeFunc = (e) => handleSlideshowItemChange(itemKey, fieldName as keyof SlideContentData, e.target.value);
+    } else if (sectionKey === 'contact') {
         value = (contactContent as any)[fieldName] || '';
         onChangeFunc = (e) => handleContentChange('contact', fieldName, e.target.value);
-    } else if (pageKey === 'servicesItems' && serviceSlug) {
-        const itemContent = servicesItemsContent[serviceSlug];
-        value = (itemContent as any)?.[fieldName] || ''; // Directly use fieldName as it is for imageUrl/imageHint
-        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName, e.target.value, undefined, serviceSlug);
+    } else if (sectionKey === 'servicesItems' && typeof itemKey === 'string') {
+        const itemContent = servicesItemsContent[itemKey];
+        value = (itemContent as any)?.[fieldName] || ''; 
+        onChangeFunc = (e) => handleContentChange('servicesItems', fieldName, e.target.value, undefined, itemKey);
     } else {
         return null; 
     }
     
-    const id = `${pageKey}-${serviceSlug || ''}-${fieldName}`;
-
     return (
         <div key={id} className="space-y-2 py-2">
         <Label htmlFor={id}>{label}</Label>
@@ -458,20 +494,57 @@ export default function AdminDashboardPage() {
               <Card>
                 <CardHeader><CardTitle>Home Page Content</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  {renderBilingualField('home', 'pageTitle', 'Page Title')}
-                  {renderBilingualField('home', 'pageDescription', 'Page Description', true)}
-                  {renderBilingualField('home', 'requestHelpButton', 'Request Help Button')}
-                  {renderBilingualField('home', 'learnMoreButton', 'Learn More Button')}
-                  {renderBilingualField('home', 'clubsTitle', 'Clubs Title')}
-                  {renderBilingualField('home', 'clubsDescription', 'Clubs Meta Description')}
-                  {renderBilingualField('home', 'clubsText', 'Clubs Text', true)}
-                  {renderBilingualField('home', 'individualsTitle', 'Individuals Title')}
-                  {renderBilingualField('home', 'individualsDescription', 'Individuals Meta Description')}
-                  {renderBilingualField('home', 'individualsText', 'Individuals Text', true)}
-                  {renderBilingualField('home', 'viewDetailsButton', 'View Details Button')}
-                  {renderBilingualField('home', 'howItWorksTitle', 'How It Works Title')}
-                  {renderBilingualField('home', 'howItWorksDescription', 'How It Works Description', true)}
-                  {renderBilingualField('home', 'howItWorksButton', 'How It Works Button')}
+                  {renderBilingualField('homeFields', 'pageTitle', 'Page Title')}
+                  {renderBilingualField('homeFields', 'pageDescription', 'Page Description', true)}
+                  {renderBilingualField('homeFields', 'requestHelpButton', 'Request Help Button')}
+                  {renderBilingualField('homeFields', 'learnMoreButton', 'Learn More Button')}
+                  {renderBilingualField('homeFields', 'clubsTitle', 'Clubs Title')}
+                  {renderBilingualField('homeFields', 'clubsDescription', 'Clubs Meta Description')}
+                  {renderBilingualField('homeFields', 'clubsText', 'Clubs Text', true)}
+                  {renderBilingualField('homeFields', 'individualsTitle', 'Individuals Title')}
+                  {renderBilingualField('homeFields', 'individualsDescription', 'Individuals Meta Description')}
+                  {renderBilingualField('homeFields', 'individualsText', 'Individuals Text', true)}
+                  {renderBilingualField('homeFields', 'viewDetailsButton', 'View Details Button')}
+                  {renderBilingualField('homeFields', 'howItWorksTitle', 'How It Works Title')}
+                  {renderBilingualField('homeFields', 'howItWorksDescription', 'How It Works Description', true)}
+                  {renderBilingualField('homeFields', 'howItWorksButton', 'How It Works Button')}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Homepage Slideshow <ImagesIcon className="inline-block ml-2 h-5 w-5"/></CardTitle>
+                    <Button onClick={addSlideshowItem} size="sm" variant="outline"><PlusCircle className="mr-2 h-4 w-4"/>Add Slide</Button>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="multiple" className="w-full space-y-4">
+                    {slideshowItems.map((slide, index) => (
+                      <AccordionItem value={`slide-${slide.id || index}`} key={slide.id || index}>
+                        <AccordionTrigger className="hover:no-underline">
+                          <div className="flex justify-between items-center w-full pr-2">
+                            <span>Slide {index + 1}: {slide.title_en || 'New Slide'}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={(e) => { e.stopPropagation(); removeSlideshowItem(index); }}
+                              className="hover:bg-destructive/10 text-destructive hover:text-destructive"
+                              aria-label="Remove slide"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="space-y-4 pl-2 border-l-2 ml-2">
+                          {renderBilingualField('slideshowItem', 'title', 'Slide Title', false, index)}
+                          {renderBilingualField('slideshowItem', 'description', 'Slide Description', true, index)}
+                          {renderBilingualField('slideshowItem', 'altText', 'Image Alt Text', false, index)}
+                          {renderBilingualField('slideshowItem', 'ctaText', 'CTA Button Text (Optional)', false, index)}
+                          {renderSingleLanguageField('slideshowItem', 'imageUrl', 'Image URL', false, index)}
+                          {renderSingleLanguageField('slideshowItem', 'imageHint', 'Image Hint (Keywords)', false, index)}
+                          {renderSingleLanguageField('slideshowItem', 'ctaLink', 'CTA Link URL (Optional)', false, index)}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -501,7 +574,7 @@ export default function AdminDashboardPage() {
                           {renderBilingualField('servicesItems', 'description', 'Short Description', true, serviceDef.slug)}
                           {renderBilingualField('servicesItems', 'detailedDescription', 'Detailed Description (HTML)', true, serviceDef.slug)}
                           {renderSingleLanguageField('servicesItems', 'imageHint', 'Image Hint (Keywords for AI)', false, serviceDef.slug)}
-                          {renderSingleLanguageField('servicesItems', 'imageUrl', 'Image URL (e.g., https://picsum.photos/400/250)', false, serviceDef.slug)}
+                          {renderSingleLanguageField('servicesItems', 'imageUrl', 'Image URL (e.g., https://images.unsplash.com/... or https://picsum.photos/...)', false, serviceDef.slug)}
                            <p className="text-sm text-muted-foreground">Icon: {serviceDef.icon.props.className?.match(/lucide-\w+/)?.[0].replace('lucide-','') || 'Custom Icon'} (Defined in code, not editable here)</p>
                         </AccordionContent>
                       </AccordionItem>
@@ -583,5 +656,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    

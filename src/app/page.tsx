@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, User, ArrowRight, Heart, Handshake, Settings } from 'lucide-react'; // Added more icons
+import { Users, User, ArrowRight, Heart, Handshake, Settings } from 'lucide-react';
 import { useLanguage } from '@/context/language-context'; 
 import React, { useEffect, useState } from 'react'; 
 import type { HomeContentData } from '@/lib/content-types';
@@ -37,11 +37,13 @@ export default function Home() {
     return (
       <div className="space-y-12 md:space-y-16 lg:space-y-20">
         {/* Slideshow Skeleton */}
-        <section className="relative w-full aspect-video min-h-[300px] sm:min-h-[350px] md:min-h-[400px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
+         <section className="relative w-full aspect-[16/9] min-h-[300px] sm:min-h-[350px] md:min-h-[400px] lg:min-h-[450px] xl:min-h-[500px] max-h-[650px] overflow-hidden rounded-xl shadow-2xl bg-muted flex items-center justify-center">
            <div className="text-center p-4 md:p-8">
-             <Skeleton className="h-10 w-3/4 sm:h-12 md:w-2/3 mx-auto mb-4 sm:mb-6" />
-             <Skeleton className="h-6 w-full sm:h-7 max-w-lg sm:max-w-xl mx-auto mb-8 sm:mb-10" />
-             <Skeleton className="h-11 w-36 sm:h-12 sm:w-40 mx-auto" />
+            <div className="animate-pulse">
+                <div className="h-10 w-3/4 sm:h-12 md:w-2/3 mx-auto mb-4 sm:mb-6 bg-muted-foreground/20 rounded-md"></div>
+                <div className="h-6 w-full sm:h-7 max-w-lg sm:max-w-xl mx-auto mb-8 sm:mb-10 bg-muted-foreground/20 rounded-md"></div>
+                <div className="h-11 w-36 sm:h-12 sm:w-40 mx-auto bg-muted-foreground/20 rounded-md"></div>
+            </div>
            </div>
         </section>
         
@@ -93,7 +95,7 @@ export default function Home() {
 
   return (
     <div className="space-y-12 md:space-y-16 lg:space-y-20">
-      <HomepageSlideshow />
+      <HomepageSlideshow slides={content.slideshowItems || []} />
       
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10 pt-8 md:pt-0">
         <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col bg-card dark:bg-secondary/40 rounded-xl overflow-hidden">
@@ -152,4 +154,3 @@ export default function Home() {
     </div>
   );
 }
-
