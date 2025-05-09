@@ -3,91 +3,15 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import type { AllContentData, ServiceItemContentData, HomeContentData, SlideContentData } from '@/lib/content-types';
+import type { AllContentData, ServiceItemContentData, HomeContentData, SlideContentData, ServicesPageData, HowItWorksContentData, ContactContentData } from '@/lib/content-types';
 import { allServices as initialServiceDefinitions } from '@/lib/services-data';
+import { getInitialHomeContent as getInitialHomeContentInternal, getInitialSlideshowData as getInitialSlideshowDataInternal } from '@/lib/default-content-getters';
 
 
-const getInitialSlideshowData = (): SlideContentData[] => [
-  {
-    id: 1,
-    imageUrl: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHxjb21tdW5pdHklMjBzdXBwb3J0JTIwdGVhbXxlbnwwfHx8fDE3MjM4MDQwODV8MA&ixlib=rb-4.0.3&q=80&w=1600',
-    imageHint: 'community support team',
-    altText_de: 'Gruppe von Menschen die zusammenarbeiten mit Technologie',
-    altText_en: 'Diverse group of people collaborating with technology',
-    title_de: 'Willkommen bei Nginxify Assist!',
-    title_en: 'Welcome to Nginxify Assist!',
-    description_de: 'Ehrenamtliche IT-Unterstützung für Vereine und Einzelpersonen. Wir helfen Ihnen, die digitale Welt zu meistern.',
-    description_en: 'Volunteer IT support for clubs and individuals. We help you navigate the digital world.',
-    ctaText_de: 'Mehr Erfahren',
-    ctaText_en: 'Learn More',
-    ctaLink: '/how-it-works',
-  },
-  {
-    id: 2,
-    imageUrl: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwY3JlYXRpb24lMjBsYXB0b3B8ZW58MHx8fHwxNzIzODA0MTM3fDA&ixlib=rb-4.0.3&q=80&w=1600',
-    imageHint: 'website creation laptop',
-    altText_de: 'Laptop Bildschirm zeigt den Prozess der Webseitenerstellung',
-    altText_en: 'Laptop screen showing website design process',
-    title_de: 'Hilfe bei Ihrer Webseite benötigt?',
-    title_en: 'Need Help with Your Website?',
-    description_de: 'Von der grundlegenden Einrichtung bis zur Beratung zu Online-Tools – unsere Freiwilligen helfen gerne.',
-    description_en: 'From basic setup to advice on online tools, our volunteers are here to assist.',
-    ctaText_de: 'Unsere Leistungen',
-    ctaText_en: 'Our Services',
-    ctaLink: '/services',
-  },
-  {
-    id: 3,
-    imageUrl: 'https://images.unsplash.com/photo-1573496774439-972004891aed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w2MzEzMjR8MHwxfHNlYXJjaHwxfHx2b2x1bnRlZXIlMjBoZWxwaW5nJTIwY29tcHV0ZXJ8ZW58MHx8fHwxNzIzODA0MTcxfDA&ixlib=rb-4.0.3&q=80&w=1600',
-    imageHint: 'volunteer helping computer',
-    altText_de: 'Freundlicher Freiwilliger hilft jemandem am Computer',
-    altText_en: 'Friendly volunteer assisting someone with a computer',
-    title_de: 'Unterstützung durch Freiwillige, für die Gemeinschaft',
-    title_en: 'Support by Volunteers, For the Community',
-    description_de: 'Engagierte Technik-Enthusiasten bieten ihre Zeit und Fähigkeiten an.',
-    description_en: 'Passionate tech enthusiasts offering their time and skills.',
-    ctaText_de: 'Hilfe Anfragen',
-    ctaText_en: 'Request Help',
-    ctaLink: '/contact',
-  },
-];
+// Helper functions for content that might not be covered by default-content-getters.ts
+// These are used if content.json doesn't exist or is partial.
 
-
-// Helper functions (could be moved to admin dashboard or a shared lib if also needed client-side for initial state)
-// These are copied here to be self-contained for default content generation
-const getInitialHomeContent = (): HomeContentData => ({
-  pageTitle_de: 'nginxify Hilfe: Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen',
-  pageTitle_en: 'Nginxify Help: Volunteer IT Support for Clubs & Individuals',
-  pageDescription_de: 'Wir helfen digital – kostenlos oder gegen eine freiwillige Spende. Unsere Mission ist es, gemeinnützige Organisationen und Privatpersonen mit IT-Herausforderungen zu unterstützen.',
-  pageDescription_en: 'We help digitally – free of charge or for a voluntary donation. Our mission is to support non-profit organizations and private individuals with IT challenges.',
-  requestHelpButton_de: 'Hilfe Anfordern',
-  requestHelpButton_en: 'Request Help',
-  learnMoreButton_de: 'Mehr über unsere Leistungen',
-  learnMoreButton_en: 'Learn More About Our Services',
-  clubsTitle_de: 'Für Vereine & Organisationen',
-  clubsTitle_en: 'For Clubs & Organizations',
-  clubsDescription_de: 'Unterstützung für gemeinnützige Projekte.',
-  clubsDescription_en: 'Support for non-profit projects.',
-  clubsText_de: 'Wir bieten grundlegende Hilfe bei der Erstellung von Webseiten, der Einrichtung von Online-Tools, oder bei allgemeinen IT-Fragen, damit Sie sich auf Ihre Kernarbeit konzentrieren können.',
-  clubsText_en: 'We offer basic help with website creation, setting up online tools, or general IT questions, so you can focus on your core work.',
-  individualsTitle_de: 'Für Privatpersonen',
-  individualsTitle_en: 'For Individuals',
-  individualsDescription_de: 'Hilfe bei alltäglichen IT-Problemen.',
-  individualsDescription_en: 'Help with everyday IT problems.',
-  individualsText_de: 'Brauchen Sie Hilfe mit Ihrem Computer, Smartphone oder haben Sie Fragen zur Online-Sicherheit? Wir unterstützen Sie bei einfachen IT-Herausforderungen.',
-  individualsText_en: 'Need help with your computer, smartphone, or have questions about online security? We support you with simple IT challenges.',
-  viewDetailsButton_de: 'Details ansehen',
-  viewDetailsButton_en: 'View Details',
-  howItWorksTitle_de: 'Wie funktioniert unsere Hilfe?',
-  howItWorksTitle_en: 'How does our help work?',
-  howItWorksDescription_de: 'Unsere Unterstützung basiert auf ehrenamtlichem Engagement. Erfahren Sie mehr über den Prozess und wie Sie Hilfe anfordern können.',
-  howItWorksDescription_en: 'Our support is based on volunteer work. Learn more about the process and how you can request help.',
-  howItWorksButton_de: 'So Funktioniert\'s',
-  howItWorksButton_en: 'How It Works',
-  slideshowItems: getInitialSlideshowData(),
-});
-
-const getInitialServicesPageContent = () => ({
+const getInitialServicesPageContent = (): ServicesPageData => ({
   pageTitle_de: 'Unsere Leistungen',
   pageTitle_en: 'Our Services',
   pageDescription_de: 'Wir bieten ehrenamtliche IT-Unterstützung für gemeinnützige Organisationen und Privatpersonen. Unser Fokus liegt auf grundlegender Hilfe und Beratung.',
@@ -102,7 +26,7 @@ const getInitialServicesPageContent = () => ({
   individualSectionDescription_en: 'We help you with everyday IT problems and questions about computers, smartphones, and the internet.',
 });
 
-const getInitialHowItWorksContent = () => ({
+const getInitialHowItWorksContent = (): HowItWorksContentData => ({
   pageTitle_de: 'So Funktioniert\'s',
   pageTitle_en: 'How It Works',
   pageDescription_de: 'Erfahren Sie mehr über unser ehrenamtliches Modell, wie Sie Hilfe anfordern können und was Sie erwarten können.',
@@ -143,7 +67,7 @@ const getInitialHowItWorksContent = () => ({
   ctaButton_en: 'Contact Us Now',
 });
 
-const getInitialContactContent = () => ({
+const getInitialContactContent = (): ContactContentData => ({
   pageTitle_de: 'Kontaktieren Sie Uns',
   pageTitle_en: 'Contact Us',
   pageDescription_de: 'Haben Sie eine Frage oder benötigen Sie IT-Unterstützung? Füllen Sie das Formular aus oder schreiben Sie uns eine E-Mail.',
@@ -205,7 +129,7 @@ function getDefaultContent(): AllContentData {
   });
 
   return {
-    home: getInitialHomeContent(),
+    home: getInitialHomeContentInternal(), // Use imported internal version
     servicesPage: getInitialServicesPageContent(),
     servicesItems,
     howItWorks: getInitialHowItWorksContent(),
@@ -222,8 +146,8 @@ export async function getContent(): Promise<AllContentData> {
     if (jsonData && jsonData.home && jsonData.home.slideshowItems && jsonData.servicesPage && jsonData.servicesItems && jsonData.howItWorks && jsonData.contact) {
       // Ensure slideshowItems is an array, otherwise fallback
       if (!Array.isArray(jsonData.home.slideshowItems)) {
-        console.warn('Home content slideshowItems is not an array, returning default slideshow content.');
-        jsonData.home.slideshowItems = getInitialSlideshowData();
+        console.warn('Home content slideshowItems is not an array, using default slideshow content from internal getter.');
+        jsonData.home.slideshowItems = getInitialSlideshowDataInternal(); // Use imported internal version
       }
       return jsonData;
     }
@@ -257,5 +181,6 @@ export async function saveContent(data: AllContentData): Promise<{ success: bool
   }
 }
 
-// Export initial data getters for admin dashboard fallback
-export { getInitialHomeContent as getInitialHomeData, getInitialSlideshowData };
+// Note: The export of getInitialHomeData and getInitialSlideshowData for client-side admin dashboard use
+// has been removed from here. The dashboard will import them from `src/lib/default-content-getters.ts`.
+// These internal versions are still used by `getDefaultContent()` within this server actions file.
