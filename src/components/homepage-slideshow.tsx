@@ -91,7 +91,7 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent sm:bg-gradient-to-t sm:from-black/60 sm:via-black/30 sm:to-transparent md:bg-gradient-to-r md:from-black/50 md:to-transparent"></div>
 
       <div className="absolute inset-0 flex flex-col items-center justify-end text-center p-4 pb-12 sm:p-6 sm:pb-16 md:items-start md:justify-center md:text-left md:p-8 lg:p-12 xl:p-16 z-20">
-        <div className="md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-black/30 md:bg-transparent p-4 rounded-lg md:p-0">
+        <div className="md:max-w-lg lg:max-w-xl xl:max-w-2xl bg-transparent p-0">
           <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-6 leading-tight [text-shadow:_0_2px_4px_rgb(0_0_0_/_50%)]">
             {title}
           </h2>
@@ -143,3 +143,4 @@ const HomepageSlideshow: FC<HomepageSlideshowProps> = ({ slides }) => {
 };
 
 export default HomepageSlideshow;
+
