@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react'; // Ensure React is imported
+import React, { useEffect, useState } from 'react'; 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -25,57 +25,12 @@ import { sendContactEmail } from '@/actions/send-contact-email';
 import { getContent } from '@/actions/content-actions';
 import type { ContactContentData } from '@/lib/content-types';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Metadata, ResolvingMetadata } from 'next';
+// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
 
-export async function generateMetadata(
-  { params, searchParams }: { params: {}; searchParams: { [key: string]: string | string[] | undefined } },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const allContent = await getContent();
-  const contactContent = allContent.contact;
-  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
-
-  const title = lang === 'en' ? contactContent.pageTitle_en : contactContent.pageTitle_de;
-  const description = lang === 'en' ? contactContent.pageDescription_en : contactContent.pageDescription_de;
-  const parentOpenGraph = (await parent).openGraph || {};
-  const parentTwitter = (await parent).twitter || {};
-
-  return {
-    title: title,
-    description: description,
-    alternates: {
-      canonical: '/contact',
-      languages: {
-        'de-DE': `${BASE_URL}/contact`,
-        'en-US': `${BASE_URL}/contact?lang=en`,
-      },
-    },
-    openGraph: {
-      ...parentOpenGraph,
-      title: title,
-      description: description,
-      url: lang === 'en' ? `${BASE_URL}/contact?lang=en` : `${BASE_URL}/contact`,
-      images: [
-        {
-          url: `${BASE_URL}/og-contact.png`, 
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-        ...(parentOpenGraph.images || []),
-      ],
-      locale: lang === 'de' ? 'de_DE' : 'en_US',
-    },
-    twitter: {
-      ...parentTwitter,
-      title: title,
-      description: description,
-      images: [`${BASE_URL}/twitter-contact.png`, ...(parentTwitter.images || [])],
-    },
-  };
-}
+// Removed generateMetadata function as it's not allowed in client components.
+// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 const getFormSchema = (language: 'de' | 'en') => z.object({
@@ -111,7 +66,7 @@ export default function ContactPage() {
       message: '',
       technicalDetails: '',
     },
-    mode: 'onBlur', 
+    mode: 'onChange', // Changed from onBlur to onChange for more immediate feedback
   });
 
   useEffect(() => {
@@ -179,7 +134,7 @@ export default function ContactPage() {
             : 'Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.'), 
           variant: 'destructive',
         });
-        console.error("Server Action Error:", result.message); // Full error for server logs
+        console.error("Server Action Error:", result.message); 
       }
     } catch (error) {
       console.error("Unexpected error during form submission:", error);
@@ -423,3 +378,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

@@ -11,57 +11,12 @@ import React, { useEffect, useState } from 'react';
 import { getContent } from '@/actions/content-actions';
 import type { ServicesPageData, DisplayService, ServiceItemContentData } from '@/lib/content-types';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Metadata, ResolvingMetadata } from 'next';
+// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
 
-export async function generateMetadata(
-  { params, searchParams }: { params: {}; searchParams: { [key: string]: string | string[] | undefined } },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const allContent = await getContent();
-  const servicesPageContent = allContent.servicesPage;
-  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
-
-  const title = lang === 'en' ? servicesPageContent.pageTitle_en : servicesPageContent.pageTitle_de;
-  const description = lang === 'en' ? servicesPageContent.pageDescription_en : servicesPageContent.pageDescription_de;
-  const parentOpenGraph = (await parent).openGraph || {};
-  const parentTwitter = (await parent).twitter || {};
-
-  return {
-    title: title,
-    description: description,
-    alternates: {
-      canonical: '/services',
-      languages: {
-        'de-DE': `${BASE_URL}/services`,
-        'en-US': `${BASE_URL}/services?lang=en`,
-      },
-    },
-    openGraph: {
-      ...parentOpenGraph,
-      title: title,
-      description: description,
-      url: lang === 'en' ? `${BASE_URL}/services?lang=en` : `${BASE_URL}/services`,
-      images: [
-        {
-          url: `${BASE_URL}/og-services.png`, 
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-        ...(parentOpenGraph.images || []),
-      ],
-      locale: lang === 'de' ? 'de_DE' : 'en_US',
-    },
-    twitter: {
-      ...parentTwitter,
-      title: title,
-      description: description,
-      images: [`${BASE_URL}/twitter-services.png`, ...(parentTwitter.images || [])],
-    },
-  };
-}
+// Removed generateMetadata function as it's not allowed in client components.
+// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 export default function ServicesPage() {
@@ -157,15 +112,15 @@ export default function ServicesPage() {
             {translations.clubSectionDescription}
             </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {clubServices.map((service, index) => (
             <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
                   icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} 
                   title={language === 'en' ? service.titleEn : service.titleDe}
                   description={language === 'en' ? service.descriptionEn : service.descriptionDe}
-                  imageUrl={service.imageUrl || "https://picsum.photos/400/250"}
-                  imageHint={service.imageHint || "service image"}
+                  imageUrl={service.imageUrl}
+                  imageHint={service.imageHint}
                   isPriority={index < 2} // Prioritize only the first 2 images for LCP
                 />
             </Link>
@@ -183,15 +138,15 @@ export default function ServicesPage() {
             {translations.individualSectionDescription}
             </p>
          </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {individualServices.map((service, index) => (
              <Link key={service.slug} href={`/services/${service.slug}`} className="group block" aria-label={language === 'en' ? service.titleEn : service.titleDe}>
                 <ServiceCard
                    icon={React.cloneElement(service.icon, { className: "text-primary h-5 w-5 md:h-6 md:w-6" })} 
                    title={language === 'en' ? service.titleEn : service.titleDe}
                    description={language === 'en' ? service.descriptionEn : service.descriptionDe}
-                   imageUrl={service.imageUrl || "https://picsum.photos/400/250"}
-                   imageHint={service.imageHint || "service image"}
+                   imageUrl={service.imageUrl}
+                   imageHint={service.imageHint}
                    isPriority={index < 2 && clubServices.length === 0} // Prioritize if no club services shown above
                 />
              </Link>
@@ -212,7 +167,7 @@ interface ServiceCardProps {
 }
 
 function ServiceCard({ icon, title, description, imageUrl, imageHint, isPriority = false }: ServiceCardProps) {
-  const placeholderImage = "https://picsum.photos/seed/" + title.replace(/\s/g, '') + "/400/225"; // Consistent placeholder based on title
+  const placeholderImage = "https://picsum.photos/seed/" + title.replace(/\s/g, '') + "/400/225";
 
   return (
     <Card className="overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 flex flex-col h-full bg-card dark:bg-secondary/30"> 
@@ -221,11 +176,12 @@ function ServiceCard({ icon, title, description, imageUrl, imageHint, isPriority
           src={imageUrl || placeholderImage}
           alt={title}
           fill
-          sizes="(max-width: 639px) 100vw, (min-width: 640px) 50vw, (min-width: 1024px) 33vw" 
+          sizes="(max-width: 639px) 100vw, (max-width: 1024px) 50vw, 33vw" 
           style={{ objectFit: 'cover' }}
           className="transition-transform duration-300 group-hover:scale-105"
           data-ai-hint={imageHint || "service topic"}
           priority={isPriority}
+          loading={isPriority ? 'eager' : 'lazy'}
         />
       </div>
       <CardHeader className="flex flex-row items-start gap-3 space-y-0 p-4 sm:p-6 pb-2"> 
@@ -258,3 +214,4 @@ function ServiceCardSkeleton() {
     </Card>
   );
 }
+

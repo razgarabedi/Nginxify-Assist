@@ -10,67 +10,14 @@ import React, { useEffect, useState } from 'react'; // Import React
 import type { HomeContentData } from '@/lib/content-types';
 import { getContent } from '@/actions/content-actions';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Metadata, ResolvingMetadata } from 'next';
+// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
 
-type Props = {
-  params: {}; 
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+// Removed Props type as generateMetadata is removed.
+// const SITE_NAME = 'Nginxify Assist'; // No longer needed here
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
 
-const SITE_NAME = 'Nginxify Assist'; // Should match layout.tsx or come from a shared config
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
-
-export async function generateMetadata(
-  { params, searchParams }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const allContent = await getContent();
-  const homeContent = allContent.home;
-  
-  // Language determination for metadata - defaults to 'de'
-  // If language switching modified URL (e.g. ?lang=en), searchParams.lang could be used
-  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
-
-  const title = lang === 'en' ? homeContent.pageTitle_en : homeContent.pageTitle_de;
-  const description = lang === 'en' ? homeContent.pageDescription_en : homeContent.pageDescription_de;
-  const parentOpenGraph = (await parent).openGraph || {};
-  const parentTwitter = (await parent).twitter || {};
-
-  return {
-    title: title, // Page-specific title, template from layout will append site name
-    description: description,
-    alternates: {
-      canonical: '/',
-      languages: {
-        'de-DE': `${BASE_URL}/`,
-        'en-US': `${BASE_URL}/?lang=en`, // Example for English version if using query param
-      },
-    },
-    openGraph: {
-      ...parentOpenGraph,
-      title: title,
-      description: description,
-      url: lang === 'en' ? `${BASE_URL}/?lang=en` : `${BASE_URL}/`,
-      images: [
-        {
-          url: `${BASE_URL}/og-home.png`, // Specific OG image for home page
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-        ...(parentOpenGraph.images || []),
-      ],
-      locale: lang === 'de' ? 'de_DE' : 'en_US',
-    },
-    twitter: {
-      ...parentTwitter,
-      title: title,
-      description: description,
-      images: [`${BASE_URL}/twitter-home.png`, ...(parentTwitter.images || [])], // Specific Twitter image
-    },
-  };
-}
-
+// Removed generateMetadata function as it's not allowed in client components.
+// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 export default function Home() {
   const { language } = useLanguage(); 
@@ -96,7 +43,7 @@ export default function Home() {
     return (
       <div className="space-y-8 md:space-y-12 lg:space-y-16">
         {/* Hero Section Skeleton */}
-        <section className="text-center py-12 md:py-16 lg:py-20 px-4 bg-card rounded-lg shadow-md">
+        <section className="text-center py-12 md:py-16 lg:py-20 px-4 bg-card dark:bg-secondary/30 rounded-lg shadow-md">
           <Skeleton className="h-10 w-3/4 mx-auto mb-4" />
           <Skeleton className="h-6 w-full max-w-2xl mx-auto mb-8" />
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
@@ -218,3 +165,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -6,13 +6,14 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-import { LanguageProvider, useLanguage } from '@/context/language-context';
+import { LanguageProvider } from '@/context/language-context';
+import HtmlLangUpdater from '@/components/layout/html-lang-updater'; // Import the new component
 import { cn } from '@/lib/utils';
 
 const SITE_NAME = 'Nginxify Assist';
 const SITE_DESCRIPTION_DE = 'Ehrenamtliche IT-Unterstützung für Vereine & Einzelpersonen in Deutschland. Kostenlos oder spendenbasiert.';
 const SITE_DESCRIPTION_EN = 'Volunteer IT support for clubs & individuals in Germany. Free or donation-based.';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // Replace with your actual domain
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; 
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -20,18 +21,18 @@ export const metadata: Metadata = {
     default: SITE_NAME,
     template: `%s | ${SITE_NAME}`,
   },
-  description: SITE_DESCRIPTION_DE, // Default description
+  description: SITE_DESCRIPTION_DE, 
   applicationName: SITE_NAME,
   referrer: 'origin-when-cross-origin',
-  keywords: ['IT-Hilfe', 'Ehrenamt', 'Vereine', 'Technik-Support', 'Nginxify', 'IT Support', 'Volunteer', 'Non-profit'],
-  authors: [{ name: 'Nginxify Team' , url: BASE_URL }], // Replace with actual author/org info
+  keywords: ['IT-Hilfe', 'Ehrenamt', 'Vereine', 'Technik-Support', 'Nginxify', 'IT Support', 'Volunteer', 'Non-profit', 'nginx web server', 'nginx reverse proxy', 'nginx configuration'],
+  authors: [{ name: 'Nginxify Team' , url: BASE_URL }], 
   creator: 'Nginxify Team',
   publisher: 'Nginxify Assist',
   alternates: {
-    canonical: '/', // Default canonical
+    canonical: '/', 
     languages: {
       'de-DE': '/',
-      'en-US': '/?lang=en', // Assuming ?lang=en for English version for metadata purposes
+      'en-US': '/?lang=en', 
     },
   },
   openGraph: {
@@ -39,18 +40,18 @@ export const metadata: Metadata = {
         default: SITE_NAME,
         template: `%s | ${SITE_NAME}`,
     },
-    description: SITE_DESCRIPTION_DE, // Default OG description
+    description: SITE_DESCRIPTION_DE, 
     url: BASE_URL,
     siteName: SITE_NAME,
     images: [
       {
-        url: `${BASE_URL}/og-image.png`, // Replace with your actual default OG image URL
+        url: `${BASE_URL}/og-image.png`, 
         width: 1200,
         height: 630,
         alt: `Logo of ${SITE_NAME}`,
       },
     ],
-    locale: 'de_DE', // Default locale
+    locale: 'de_DE', 
     type: 'website',
   },
   twitter: {
@@ -60,51 +61,35 @@ export const metadata: Metadata = {
         template: `%s | ${SITE_NAME}`,
     },
     description: SITE_DESCRIPTION_DE,
-    // siteId: '@yourTwitterHandle', // Optional: Your Twitter ID
-    // creator: '@creatorTwitterHandle', // Optional: Creator's Twitter ID
-    images: [`${BASE_URL}/twitter-image.png`], // Replace with your actual default Twitter image URL
+    images: [`${BASE_URL}/twitter-image.png`], 
   },
-  robots: { // Default robot settings, can be overridden per page
+  robots: { 
     index: true,
     follow: true,
-    nocache: false, // Allow caching
+    nocache: false, 
     googleBot: {
       index: true,
       follow: true,
-      noimageindex: false, // Allow Google to index images
+      noimageindex: false, 
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
   },
-  // icons: { // Add if you have specific icons beyond favicon.ico
-  //   icon: '/icon.png',
-  //   shortcut: '/shortcut-icon.png',
-  //   apple: '/apple-icon.png',
-  // },
-  manifest: `${BASE_URL}/site.webmanifest`, // Optional: If you have a web app manifest
+  manifest: `${BASE_URL}/site.webmanifest`, 
 };
 
 export const viewport: Viewport = {
-  themeColor: [ // Example theme colors
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' }, // Light theme
-    { media: '(prefers-color-scheme: dark)', color: '#1f2937' },  // Dark theme (example --background HSL for dark)
+  themeColor: [ 
+    { media: '(prefers-color-scheme: light)', color: 'hsl(var(--background))' }, 
+    { media: '(prefers-color-scheme: dark)', color: 'hsl(var(--background))' },  
   ],
   colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1, // Optional: control user scaling
-  // userScalable: false, // Optional: control user scaling
+  maximumScale: 1, 
 }
 
-// Client component to set lang attribute dynamically
-function HtmlLangUpdater() {
-  const { language } = useLanguage();
-  useEffect(() => {
-    document.documentElement.lang = language;
-  }, [language]);
-  return null; // This component doesn't render anything visible
-}
 
 export default function RootLayout({
   children,
@@ -112,14 +97,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // Defaulting to 'de' here as metadata is generated server-side before context is available.
-    // HtmlLangUpdater will update it on the client.
-    <html lang="de" suppressHydrationWarning className="h-full">
+    <html lang="de" suppressHydrationWarning className="h-full scroll-smooth">
       <head>
-        {/* Preconnect to CDNs or critical origins */}
         <link rel="preconnect" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://picsum.photos" />
-        {/* Add other preconnects if necessary, e.g., for Google Fonts if used directly */}
+        {/* Removed preconnect for picsum.photos as it's no longer used for services */}
+        {/* <link rel="preconnect" href="https://picsum.photos" /> */}
       </head>
       <body
         className={cn(
@@ -129,7 +111,7 @@ export default function RootLayout({
         )}
       >
         <LanguageProvider>
-          <HtmlLangUpdater /> {/* Updates lang on client */}
+          <HtmlLangUpdater />
           <Header />
           <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 lg:py-10">
             {children}

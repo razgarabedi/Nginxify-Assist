@@ -13,73 +13,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getContent } from '@/actions/content-actions';
 import type { DisplayService, ServiceItemContentData } from '@/lib/content-types';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { Metadata, ResolvingMetadata } from 'next';
+// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
 
-export async function generateMetadata(
-  { params, searchParams }: { params: { slug: string }; searchParams: { [key: string]: string | string[] | undefined } },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const { slug } = params;
-  const allContent = await getContent();
-  const serviceDef = serviceDefinitions.find(s => s.slug === slug);
-
-  if (!serviceDef) {
-    return {
-      title: 'Service Not Found',
-      description: 'The requested service could not be found.',
-    };
-  }
-
-  const dynamicContent = allContent.servicesItems[slug] || {} as ServiceItemContentData;
-  const mergedService: DisplayService = { ...serviceDef, ...dynamicContent };
-  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
-
-  const title = lang === 'en' ? mergedService.titleEn : mergedService.titleDe;
-  const description = lang === 'en' ? mergedService.descriptionEn : mergedService.descriptionDe; // Using short description for meta
-  const parentOpenGraph = (await parent).openGraph || {};
-  const parentTwitter = (await parent).twitter || {};
-
-  return {
-    title: title,
-    description: description,
-    alternates: {
-      canonical: `/services/${slug}`,
-      languages: {
-        'de-DE': `${BASE_URL}/services/${slug}`,
-        'en-US': `${BASE_URL}/services/${slug}?lang=en`,
-      },
-    },
-    openGraph: {
-      ...parentOpenGraph,
-      title: title,
-      description: description,
-      url: lang === 'en' ? `${BASE_URL}/services/${slug}?lang=en` : `${BASE_URL}/services/${slug}`,
-      images: [
-        {
-          url: mergedService.imageUrl || `${BASE_URL}/og-service-default.png`, // Use service image or a default
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-        ...(parentOpenGraph.images || []),
-      ],
-      locale: lang === 'de' ? 'de_DE' : 'en_US',
-      type: 'article', // More specific type for a service page
-      article: { // Optional: more details for articles
-        // publishedTime: '2023-01-01T00:00:00.000Z', // If you have a published date
-        // authors: ['Nginxify Assist Team'],
-      },
-    },
-    twitter: {
-      ...parentTwitter,
-      title: title,
-      description: description,
-      images: [mergedService.imageUrl || `${BASE_URL}/twitter-service-default.png`, ...(parentTwitter.images || [])],
-    },
-  };
-}
+// Removed generateMetadata function as it's not allowed in client components.
+// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 interface ServiceDetailPageProps {
@@ -98,7 +37,7 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
    useEffect(() => {
      async function loadServiceContent() {
        if (!slug) {
-         setService(null); // Explicitly set to null if slug is missing
+         setService(null); 
          return;
        }
 
@@ -195,7 +134,7 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 896px" 
            style={{ objectFit: 'cover' }}
            data-ai-hint={service.imageHint || "technology service"}
-           priority // LCP for this page is likely the main image
+           priority 
          />
        </div>
 
@@ -228,8 +167,3 @@ export default function ServiceDetailPage({ params: paramsPromise }: ServiceDeta
     </div>
   );
 }
-
-// Removed generateStaticParams as it's not compatible with "use client" and dynamic searchParams usage in generateMetadata.
-// For dynamic pages that need generateStaticParams, they usually cannot be "use client" at the page level.
-// If static generation is critical, content fetching and language logic would need to be structured differently,
-// potentially moving client-specific hooks to sub-components.

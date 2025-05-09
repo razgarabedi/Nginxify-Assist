@@ -10,57 +10,12 @@ import React, { useEffect, useState } from 'react';
 import type { HowItWorksContentData } from '@/lib/content-types';
 import { getContent } from '@/actions/content-actions';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Metadata, ResolvingMetadata } from 'next';
+// Removed Metadata and ResolvingMetadata imports as generateMetadata is removed.
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com';
+// const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://nginxify.com'; // No longer needed here
 
-export async function generateMetadata(
-  { params, searchParams }: { params: {}; searchParams: { [key: string]: string | string[] | undefined } },
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const allContent = await getContent();
-  const howItWorksContent = allContent.howItWorks;
-  const lang = searchParams?.lang === 'en' ? 'en' : 'de';
-
-  const title = lang === 'en' ? howItWorksContent.pageTitle_en : howItWorksContent.pageTitle_de;
-  const description = lang === 'en' ? howItWorksContent.pageDescription_en : howItWorksContent.pageDescription_de;
-  const parentOpenGraph = (await parent).openGraph || {};
-  const parentTwitter = (await parent).twitter || {};
-
-  return {
-    title: title,
-    description: description,
-    alternates: {
-      canonical: '/how-it-works',
-      languages: {
-        'de-DE': `${BASE_URL}/how-it-works`,
-        'en-US': `${BASE_URL}/how-it-works?lang=en`,
-      },
-    },
-    openGraph: {
-      ...parentOpenGraph,
-      title: title,
-      description: description,
-      url: lang === 'en' ? `${BASE_URL}/how-it-works?lang=en` : `${BASE_URL}/how-it-works`,
-      images: [
-        {
-          url: `${BASE_URL}/og-how-it-works.png`, 
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-        ...(parentOpenGraph.images || []),
-      ],
-      locale: lang === 'de' ? 'de_DE' : 'en_US',
-    },
-    twitter: {
-      ...parentTwitter,
-      title: title,
-      description: description,
-      images: [`${BASE_URL}/twitter-how-it-works.png`, ...(parentTwitter.images || [])],
-    },
-  };
-}
+// Removed generateMetadata function as it's not allowed in client components.
+// Metadata for this page will be handled by the nearest parent Server Component (e.g., layout.tsx).
 
 
 export default function HowItWorksPage() {
@@ -222,3 +177,4 @@ function InfoCardSkeleton() {
     </Card>
   );
 }
+
