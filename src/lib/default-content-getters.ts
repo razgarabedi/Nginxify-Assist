@@ -53,10 +53,6 @@ export const getInitialHomeContent = (): HomeContentData => ({
   pageTitle_en: 'Nginxify Help: Volunteer IT Support for Clubs & Individuals',
   pageDescription_de: 'Wir helfen digital – kostenlos oder gegen eine freiwillige Spende. Unsere Mission ist es, gemeinnützige Organisationen und Privatpersonen mit IT-Herausforderungen zu unterstützen.',
   pageDescription_en: 'We help digitally – free of charge or for a voluntary donation. Our mission is to support non-profit organizations and private individuals with IT challenges.',
-  requestHelpButton_de: 'Hilfe Anfordern',
-  requestHelpButton_en: 'Request Help',
-  learnMoreButton_de: 'Mehr über unsere Leistungen',
-  learnMoreButton_en: 'Learn More About Our Services',
   clubsTitle_de: 'Für Vereine & Organisationen',
   clubsTitle_en: 'For Clubs & Organizations',
   clubsDescription_de: 'Unterstützung für gemeinnützige Projekte.',
@@ -79,3 +75,5 @@ export const getInitialHomeContent = (): HomeContentData => ({
   howItWorksButton_en: 'How It Works',
   slideshowItems: getInitialSlideshowData(),
 });
+
+    

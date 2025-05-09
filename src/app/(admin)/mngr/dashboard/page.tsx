@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -371,8 +372,8 @@ export default function AdminDashboardPage() {
       onChangeEn = (e) => handleSlideshowItemChange(itemKey, `${fieldName}_en` as keyof SlideContentData, e.target.value);
     } else if (sectionKey === 'servicesItems' && typeof itemKey === 'string') {
         const itemContent = servicesItemsContent[itemKey];
-        valueDe = (itemContent as any)[`${fieldName}De`] || '';
-        valueEn = (itemContent as any)[`${fieldName}En`] || '';
+        valueDe = (itemContent as any)[`${fieldName}De`] || ''; // Corrected to match ServiceItemContentData
+        valueEn = (itemContent as any)[`${fieldName}En`] || ''; // Corrected to match ServiceItemContentData
         onChangeDe = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'de', itemKey);
         onChangeEn = (e) => handleContentChange(sectionKey, fieldName, e.target.value, 'en', itemKey);
     } else if (sectionKey === 'homeFields') {
@@ -509,8 +510,6 @@ export default function AdminDashboardPage() {
                 <CardContent className="space-y-4">
                   {renderBilingualField('homeFields', 'pageTitle', 'Page Title')}
                   {renderBilingualField('homeFields', 'pageDescription', 'Page Description', true)}
-                  {renderBilingualField('homeFields', 'requestHelpButton', 'Request Help Button')}
-                  {renderBilingualField('homeFields', 'learnMoreButton', 'Learn More Button')}
                   {renderBilingualField('homeFields', 'clubsTitle', 'Clubs Title')}
                   {renderBilingualField('homeFields', 'clubsDescription', 'Clubs Meta Description')}
                   {renderBilingualField('homeFields', 'clubsText', 'Clubs Text', true)}
@@ -674,3 +673,4 @@ export default function AdminDashboardPage() {
   );
 }
 
+    

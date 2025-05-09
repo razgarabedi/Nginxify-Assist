@@ -1,3 +1,4 @@
+
 // src/lib/content-types.ts
 import type { Service as ServiceDefinition } from '@/lib/services-data';
 
@@ -23,10 +24,6 @@ export interface HomeContentData {
   pageTitle_en: string;
   pageDescription_de: string;
   pageDescription_en: string;
-  requestHelpButton_de: string;
-  requestHelpButton_en: string;
-  learnMoreButton_de: string;
-  learnMoreButton_en: string;
   clubsTitle_de: string;
   clubsTitle_en: string;
   clubsDescription_de: string;
@@ -176,3 +173,5 @@ export interface AllContentData {
 
 // Represents a fully merged service item for display, including the icon
 export type DisplayService = ServiceDefinition;
+
+    
